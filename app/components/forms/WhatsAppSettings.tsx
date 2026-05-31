@@ -8,9 +8,8 @@ import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { MessageCircle, CheckCircle, XCircle, AlertCircle, TestTube } from "lucide-react"
+import { MessageCircle, AlertCircle } from "lucide-react"
 import type { Settings } from "@/app/lib/storage"
-import { WhatsAppService } from "@/app/lib/whatsapp"
 
 interface WhatsAppSettingsProps {
   settings: Settings
@@ -30,10 +29,7 @@ export default function WhatsAppSettings({ settings, onSave }: WhatsAppSettingsP
     sendConfirmation: settings.reminderSettings?.sendConfirmation || true,
   })
 
-  const [testResult, setTestResult] = useState<{
-    status: "idle" | "testing" | "success" | "error"
-    message?: string
-  }>({ status: "idle" })
+
 
   const handleSave = () => {
     const updatedSettings: Settings = {
@@ -56,45 +52,7 @@ export default function WhatsAppSettings({ settings, onSave }: WhatsAppSettingsP
     onSave(updatedSettings)
   }
 
-  const testConnection = async () => {
-    if (!formData.accessToken || !formData.phoneNumberId) {
-      setTestResult({
-        status: "error",
-        message: "Mohon lengkapi Access Token dan Phone Number ID",
-      })
-      return
-    }
 
-    setTestResult({ status: "testing" })
-
-    try {
-      const whatsappService = new WhatsAppService({
-        apiUrl: formData.apiUrl,
-        accessToken: formData.accessToken,
-        phoneNumberId: formData.phoneNumberId,
-        businessAccountId: formData.businessAccountId,
-      })
-
-      const success = await whatsappService.testConnection()
-
-      if (success) {
-        setTestResult({
-          status: "success",
-          message: "Koneksi WhatsApp berhasil!",
-        })
-      } else {
-        setTestResult({
-          status: "error",
-          message: "Koneksi gagal. Periksa kembali konfigurasi Anda.",
-        })
-      }
-    } catch (error) {
-      setTestResult({
-        status: "error",
-        message: "Terjadi kesalahan saat menguji koneksi.",
-      })
-    }
-  }
 
   return (
     <div className="space-y-6">
@@ -195,20 +153,6 @@ export default function WhatsAppSettings({ settings, onSave }: WhatsAppSettingsP
           Simpan Pengaturan
         </Button>
       </div>
-
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          <strong>Cara Setup WhatsApp Business API:</strong>
-          <ol className="list-decimal list-inside mt-2 space-y-1">
-            <li>Daftar di Meta for Developers (developers.facebook.com)</li>
-            <li>Buat aplikasi baru dan aktifkan WhatsApp Business API</li>
-            <li>Dapatkan Access Token dari dashboard aplikasi</li>
-            <li>Catat Phone Number ID dari pengaturan WhatsApp</li>
-            <li>Masukkan kredensial di form di atas dan test koneksi</li>
-          </ol>
-        </AlertDescription>
-      </Alert>
     </div>
   )
 }
