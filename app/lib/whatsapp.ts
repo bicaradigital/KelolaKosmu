@@ -1,30 +1,9 @@
-// WhatsApp API service
+// WhatsApp Link Generator Service
 export interface WhatsAppConfig {
   apiUrl: string
   accessToken: string
   phoneNumberId: string
   businessAccountId: string
-}
-
-export interface WhatsAppMessage {
-  to: string
-  type: "text" | "template"
-  text?: {
-    body: string
-  }
-  template?: {
-    name: string
-    language: {
-      code: string
-    }
-    components: Array<{
-      type: string
-      parameters: Array<{
-        type: string
-        text: string
-      }>
-    }>
-  }
 }
 
 export class WhatsAppService {
@@ -34,137 +13,93 @@ export class WhatsAppService {
     this.config = config
   }
 
-  async sendMessage(message: WhatsAppMessage): Promise<boolean> {
-    try {
-      const response = await fetch(`${this.config.apiUrl}/${this.config.phoneNumberId}/messages`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${this.config.accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messaging_product: "whatsapp",
-          ...message,
-        }),
-      })
-
-      if (!response.ok) {
-        const error = await response.text()
-        console.error("WhatsApp API Error:", error)
-        return false
-      }
-
-      const result = await response.json()
-      console.log("WhatsApp message sent:", result)
-      return true
-    } catch (error) {
-      console.error("Failed to send WhatsApp message:", error)
-      return false
-    }
-  }
-
-  async sendPaymentReminder(
+  /**
+   * Generate wa.me link dengan pesan otomatis untuk reminder pembayaran
+   */
+  generatePaymentReminderLink(
     phoneNumber: string,
     tenantName: string,
     roomNumber: string,
-    amount: number,
     dueDate: string,
-    kosName: string,
-  ): Promise<boolean> {
-    // Format phone number (remove leading 0 and add country code)
-    const formattedPhone = phoneNumber.startsWith("0")
-      ? "62" + phoneNumber.substring(1)
-      : phoneNumber.startsWith("+62")
-        ? phoneNumber.substring(1)
-        : phoneNumber.startsWith("62")
-          ? phoneNumber
-          : "62" + phoneNumber
+  ): string {
+    const formattedPhone = this.formatPhoneNumber(phoneNumber)
+    const dueFormatted = new Date(dueDate).toLocaleDateString("id-ID", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
 
-    const message: WhatsAppMessage = {
-      to: formattedPhone,
-      type: "text",
-      text: {
-        body: `🏠 *${kosName}*\n\nHalo ${tenantName},\n\nIni adalah pengingat pembayaran sewa kamar ${roomNumber}:\n\n💰 *Jumlah:* Rp ${amount.toLocaleString("id-ID")}\n📅 *Jatuh Tempo:* ${new Date(
-          dueDate,
-        ).toLocaleDateString("id-ID", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        })}\n\nMohon segera lakukan pembayaran sebelum tanggal jatuh tempo.\n\nTerima kasih! 🙏`,
-      },
-    }
+    const message = `Halo ${tenantName}, sewa kamar ${roomNumber} jatuh tempo ${dueFormatted}`
+    const encodedMessage = encodeURIComponent(message)
 
-    return await this.sendMessage(message)
+    return `https://wa.me/${formattedPhone}?text=${encodedMessage}`
   }
 
-  async sendPaymentConfirmation(
+  /**
+   * Generate wa.me link untuk notifikasi pembayaran terlambat
+   */
+  generateOverdueNoticeLink(
+    phoneNumber: string,
+    tenantName: string,
+    roomNumber: string,
+    daysOverdue: number,
+    dueDate: string,
+  ): string {
+    const formattedPhone = this.formatPhoneNumber(phoneNumber)
+    const dueFormatted = new Date(dueDate).toLocaleDateString("id-ID", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+
+    const message = `⚠️ Halo ${tenantName}, pembayaran kamar ${roomNumber} sudah terlambat ${daysOverdue} hari (jatuh tempo: ${dueFormatted})`
+    const encodedMessage = encodeURIComponent(message)
+
+    return `https://wa.me/${formattedPhone}?text=${encodedMessage}`
+  }
+
+  /**
+   * Generate wa.me link untuk konfirmasi pembayaran
+   */
+  generatePaymentConfirmationLink(
     phoneNumber: string,
     tenantName: string,
     roomNumber: string,
     amount: number,
     paidDate: string,
-    kosName: string,
-  ): Promise<boolean> {
-    const formattedPhone = phoneNumber.startsWith("0")
-      ? "62" + phoneNumber.substring(1)
-      : phoneNumber.startsWith("+62")
-        ? phoneNumber.substring(1)
-        : phoneNumber.startsWith("62")
-          ? phoneNumber
-          : "62" + phoneNumber
+  ): string {
+    const formattedPhone = this.formatPhoneNumber(phoneNumber)
+    const paidFormatted = new Date(paidDate).toLocaleDateString("id-ID", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
 
-    const message: WhatsAppMessage = {
-      to: formattedPhone,
-      type: "text",
-      text: {
-        body: `✅ *Pembayaran Diterima*\n\n🏠 *${kosName}*\n\nHalo ${tenantName},\n\nPembayaran Anda telah diterima:\n\n🏠 *Kamar:* ${roomNumber}\n💰 *Jumlah:* Rp ${amount.toLocaleString("id-ID")}\n📅 *Tanggal Bayar:* ${new Date(
-          paidDate,
-        ).toLocaleDateString("id-ID", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        })}\n\nTerima kasih atas pembayaran tepat waktu! 🙏`,
-      },
-    }
+    const amountFormatted = amount.toLocaleString("id-ID")
+    const message = `✅ Halo ${tenantName}, pembayaran kamar ${roomNumber} sebesar Rp ${amountFormatted} sudah diterima pada ${paidFormatted}`
+    const encodedMessage = encodeURIComponent(message)
 
-    return await this.sendMessage(message)
+    return `https://wa.me/${formattedPhone}?text=${encodedMessage}`
   }
 
-  async sendOverdueNotice(
-    phoneNumber: string,
-    tenantName: string,
-    roomNumber: string,
-    amount: number,
-    dueDate: string,
-    daysOverdue: number,
-    kosName: string,
-  ): Promise<boolean> {
-    const formattedPhone = phoneNumber.startsWith("0")
-      ? "62" + phoneNumber.substring(1)
-      : phoneNumber.startsWith("+62")
-        ? phoneNumber.substring(1)
-        : phoneNumber.startsWith("62")
-          ? phoneNumber
-          : "62" + phoneNumber
+  /**
+   * Format nomor telepon ke format internasional
+   */
+  private formatPhoneNumber(phoneNumber: string): string {
+    // Hapus semua karakter non-angka
+    const cleaned = phoneNumber.replace(/\D/g, "")
 
-    const message: WhatsAppMessage = {
-      to: formattedPhone,
-      type: "text",
-      text: {
-        body: `⚠️ *PEMBAYARAN TERLAMBAT*\n\n🏠 *${kosName}*\n\nHalo ${tenantName},\n\nPembayaran sewa kamar ${roomNumber} sudah terlambat ${daysOverdue} hari:\n\n💰 *Jumlah:* Rp ${amount.toLocaleString("id-ID")}\n📅 *Jatuh Tempo:* ${new Date(
-          dueDate,
-        ).toLocaleDateString("id-ID", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        })}\n\n⏰ Mohon segera lakukan pembayaran untuk menghindari denda.\n\nHubungi kami jika ada kendala.\n\nTerima kasih! 🙏`,
-      },
+    // Format untuk nomor Indonesia
+    if (cleaned.startsWith("0")) {
+      return "62" + cleaned.substring(1)
+    } else if (cleaned.startsWith("62")) {
+      return cleaned
+    } else {
+      return "62" + cleaned
     }
-
-    return await this.sendMessage(message)
   }
 
-  // Test connection
+  // Test connection (untuk validasi konfigurasi lama jika ada)
   async testConnection(): Promise<boolean> {
     try {
       const response = await fetch(`${this.config.apiUrl}/${this.config.phoneNumberId}`, {

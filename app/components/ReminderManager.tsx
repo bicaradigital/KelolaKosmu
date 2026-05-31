@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { MessageCircle, Send, Clock, CheckCircle, XCircle, AlertTriangle, Calendar, Users } from "lucide-react"
+import { MessageCircle, Send, Clock, CheckCircle, XCircle, AlertTriangle, Calendar, Users, ExternalLink } from "lucide-react"
 import { WhatsAppService } from "@/app/lib/whatsapp"
 import {
   formatCurrency,
@@ -39,17 +39,14 @@ export default function ReminderManager({
   onUpdatePayment,
   onAddReminderLog,
 }: ReminderManagerProps) {
-  const [sending, setSending] = useState<string[]>([])
-  const [results, setResults] = useState<{ [key: string]: { success: boolean; message: string } }>({})
+  const [clickedLinks, setClickedLinks] = useState<string[]>([])
 
-  const whatsappService = settings.whatsappConfig?.enabled
-    ? new WhatsAppService({
-        apiUrl: settings.whatsappConfig.apiUrl,
-        accessToken: settings.whatsappConfig.accessToken,
-        phoneNumberId: settings.whatsappConfig.phoneNumberId,
-        businessAccountId: settings.whatsappConfig.businessAccountId,
-      })
-    : null
+  const whatsappService = new WhatsAppService({
+    apiUrl: settings.whatsappConfig?.apiUrl || "https://graph.facebook.com/v18.0",
+    accessToken: settings.whatsappConfig?.accessToken || "",
+    phoneNumberId: settings.whatsappConfig?.phoneNumberId || "",
+    businessAccountId: settings.whatsappConfig?.businessAccountId || "",
+  })
 
   // Get payments that need reminders
   const getPaymentsNeedingReminders = () => {
@@ -96,85 +93,55 @@ export default function ReminderManager({
     return results
   }
 
-  const sendReminder = async (payment: Payment, tenant: Tenant, room: Room, type: "before_due" | "overdue") => {
-    if (!whatsappService) return
-
-    setSending((prev) => [...prev, payment.id])
-
-    try {
-      let success = false
-
-      if (type === "before_due") {
-        success = await whatsappService.sendPaymentReminder(
-          tenant.phone,
-          tenant.name,
-          room.number,
-          payment.amount,
-          payment.dueDate,
-          settings.kosName,
-        )
-      } else {
-        const daysOverdue = getDaysOverdue(payment.dueDate)
-        success = await whatsappService.sendOverdueNotice(
-          tenant.phone,
-          tenant.name,
-          room.number,
-          payment.amount,
-          payment.dueDate,
-          daysOverdue,
-          settings.kosName,
-        )
-      }
-
-      // Log the reminder
-      const log: ReminderLog = {
-        id: generateId(),
-        paymentId: payment.id,
-        tenantId: tenant.id,
-        type,
-        sentDate: new Date().toISOString(),
-        success,
-        message: success ? "Reminder sent successfully" : "Failed to send reminder",
-      }
-
-      onAddReminderLog(log)
-
-      // Update payment reminder status
-      onUpdatePayment(payment.id, {
-        reminderSent: success,
-        reminderSentDate: success ? new Date().toISOString() : undefined,
-      })
-
-      setResults((prev) => ({
-        ...prev,
-        [payment.id]: {
-          success,
-          message: success ? "Reminder berhasil dikirim!" : "Gagal mengirim reminder",
-        },
-      }))
-    } catch (error) {
-      console.error("Error sending reminder:", error)
-      setResults((prev) => ({
-        ...prev,
-        [payment.id]: {
-          success: false,
-          message: "Terjadi kesalahan saat mengirim reminder",
-        },
-      }))
-    } finally {
-      setSending((prev) => prev.filter((id) => id !== payment.id))
+  const generateAndLogReminder = (payment: Payment, tenant: Tenant, type: "before_due" | "overdue") => {
+    // Create reminder log
+    const log: ReminderLog = {
+      id: generateId(),
+      paymentId: payment.id,
+      tenantId: tenant.id,
+      type,
+      sentDate: new Date().toISOString(),
+      success: true,
+      message: "Link reminder dibuat",
     }
+
+    onAddReminderLog(log)
+
+    // Update payment reminder status
+    onUpdatePayment(payment.id, {
+      reminderSent: true,
+      reminderSentDate: new Date().toISOString(),
+    })
+
+    setClickedLinks((prev) => [...prev, payment.id])
   }
 
-  const sendBulkReminders = async (
-    paymentList: Array<Payment & { tenant: Tenant; room: Room }>,
-    type: "before_due" | "overdue",
-  ) => {
-    for (const item of paymentList) {
-      await sendReminder(item, item.tenant, item.room, type)
-      // Add delay between messages to avoid rate limiting
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+  const handleOpenWhatsAppLink = (payment: Payment, tenant: Tenant, room: Room, type: "before_due" | "overdue") => {
+    let link = ""
+
+    if (type === "before_due") {
+      link = whatsappService.generatePaymentReminderLink(
+        tenant.phone,
+        tenant.name,
+        room.number,
+        payment.dueDate,
+      )
+    } else {
+      const daysOverdue = getDaysOverdue(payment.dueDate)
+      link = whatsappService.generateOverdueNoticeLink(
+        tenant.phone,
+        tenant.name,
+        room.number,
+        daysOverdue,
+        payment.dueDate,
+      )
     }
+
+    // Log the reminder when user clicks the link
+    generateAndLogReminder(payment, tenant, type)
+
+    // Open WhatsApp link
+    window.open(link, "_blank")
   }
 
   const reminderData = getPaymentsNeedingReminders()
@@ -257,24 +224,14 @@ export default function ReminderManager({
       {reminderData.beforeDue.length > 0 && (
         <Card>
           <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="w-5 h-5" />
-                  Reminder Sebelum Jatuh Tempo ({reminderData.beforeDue.length})
-                </CardTitle>
-                <CardDescription>
-                  Pembayaran yang akan jatuh tempo dalam {settings.reminderSettings?.daysBefore || 3} hari
-                </CardDescription>
-              </div>
-              <Button
-                onClick={() => sendBulkReminders(reminderData.beforeDue, "before_due")}
-                disabled={sending.length > 0}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Send className="w-4 h-4 mr-2" />
-                Kirim Semua
-              </Button>
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                Reminder Sebelum Jatuh Tempo ({reminderData.beforeDue.length})
+              </CardTitle>
+              <CardDescription>
+                Pembayaran yang akan jatuh tempo dalam {settings.reminderSettings?.daysBefore || 3} hari - Klik tombol untuk membuka WhatsApp
+              </CardDescription>
             </div>
           </CardHeader>
           <CardContent>
@@ -292,34 +249,20 @@ export default function ReminderManager({
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {results[item.id] && (
-                      <Badge variant={results[item.id].success ? "default" : "destructive"}>
-                        {results[item.id].success ? (
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                        ) : (
-                          <XCircle className="w-3 h-3 mr-1" />
-                        )}
-                        {results[item.id].message}
+                    {clickedLinks.includes(item.id) && (
+                      <Badge variant="default" className="bg-green-600">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Link Dibuat
                       </Badge>
                     )}
 
                     <Button
                       size="sm"
-                      onClick={() => sendReminder(item, item.tenant, item.room, "before_due")}
-                      disabled={sending.includes(item.id)}
-                      className="bg-blue-600 hover:bg-blue-700"
+                      onClick={() => handleOpenWhatsAppLink(item, item.tenant, item.room, "before_due")}
+                      className="bg-green-600 hover:bg-green-700"
                     >
-                      {sending.includes(item.id) ? (
-                        <>
-                          <Clock className="w-3 h-3 mr-1 animate-spin" />
-                          Mengirim...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-3 h-3 mr-1" />
-                          Kirim
-                        </>
-                      )}
+                      <Send className="w-3 h-3 mr-1" />
+                      Buka WA
                     </Button>
                   </div>
                 </div>
@@ -333,22 +276,12 @@ export default function ReminderManager({
       {reminderData.overdue.length > 0 && (
         <Card>
           <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-red-500" />
-                  Reminder Pembayaran Terlambat ({reminderData.overdue.length})
-                </CardTitle>
-                <CardDescription>Pembayaran yang sudah lewat jatuh tempo</CardDescription>
-              </div>
-              <Button
-                onClick={() => sendBulkReminders(reminderData.overdue, "overdue")}
-                disabled={sending.length > 0}
-                variant="destructive"
-              >
-                <Send className="w-4 h-4 mr-2" />
-                Kirim Semua
-              </Button>
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
+                Reminder Pembayaran Terlambat ({reminderData.overdue.length})
+              </CardTitle>
+              <CardDescription>Pembayaran yang sudah lewat jatuh tempo - Klik tombol untuk membuka WhatsApp</CardDescription>
             </div>
           </CardHeader>
           <CardContent>
@@ -366,34 +299,20 @@ export default function ReminderManager({
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {results[item.id] && (
-                      <Badge variant={results[item.id].success ? "default" : "destructive"}>
-                        {results[item.id].success ? (
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                        ) : (
-                          <XCircle className="w-3 h-3 mr-1" />
-                        )}
-                        {results[item.id].message}
+                    {clickedLinks.includes(item.id) && (
+                      <Badge variant="default" className="bg-green-600">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Link Dibuat
                       </Badge>
                     )}
 
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => sendReminder(item, item.tenant, item.room, "overdue")}
-                      disabled={sending.includes(item.id)}
+                      onClick={() => handleOpenWhatsAppLink(item, item.tenant, item.room, "overdue")}
                     >
-                      {sending.includes(item.id) ? (
-                        <>
-                          <Clock className="w-3 h-3 mr-1 animate-spin" />
-                          Mengirim...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-3 h-3 mr-1" />
-                          Kirim
-                        </>
-                      )}
+                      <Send className="w-3 h-3 mr-1" />
+                      Buka WA
                     </Button>
                   </div>
                 </div>

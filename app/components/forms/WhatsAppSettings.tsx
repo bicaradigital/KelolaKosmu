@@ -102,9 +102,9 @@ export default function WhatsAppSettings({ settings, onSave }: WhatsAppSettingsP
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageCircle className="w-5 h-5" />
-            Konfigurasi WhatsApp Business API
+            Pengaturan WhatsApp Reminder
           </CardTitle>
-          <CardDescription>Setup WhatsApp Business API untuk mengirim reminder pembayaran otomatis</CardDescription>
+          <CardDescription>Aktifkan fitur untuk mengirim reminder pembayaran via WhatsApp dengan link otomatis (wa.me)</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center space-x-2">
@@ -117,94 +117,13 @@ export default function WhatsAppSettings({ settings, onSave }: WhatsAppSettingsP
           </div>
 
           {formData.enabled && (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="access-token">Access Token *</Label>
-                  <Input
-                    id="access-token"
-                    type="password"
-                    value={formData.accessToken}
-                    onChange={(e) => setFormData({ ...formData, accessToken: e.target.value })}
-                    placeholder="Masukkan WhatsApp Access Token"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone-number-id">Phone Number ID *</Label>
-                  <Input
-                    id="phone-number-id"
-                    value={formData.phoneNumberId}
-                    onChange={(e) => setFormData({ ...formData, phoneNumberId: e.target.value })}
-                    placeholder="Masukkan Phone Number ID"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="business-account-id">Business Account ID</Label>
-                  <Input
-                    id="business-account-id"
-                    value={formData.businessAccountId}
-                    onChange={(e) => setFormData({ ...formData, businessAccountId: e.target.value })}
-                    placeholder="Masukkan Business Account ID"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="api-url">API URL</Label>
-                  <Input
-                    id="api-url"
-                    value={formData.apiUrl}
-                    onChange={(e) => setFormData({ ...formData, apiUrl: e.target.value })}
-                    placeholder="https://graph.facebook.com/v18.0"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={testConnection}
-                  disabled={testResult.status === "testing"}
-                  className="flex items-center gap-2"
-                >
-                  <TestTube className="w-4 h-4" />
-                  {testResult.status === "testing" ? "Testing..." : "Test Koneksi"}
-                </Button>
-
-                {testResult.status !== "idle" && (
-                  <div className="flex items-center gap-2">
-                    {testResult.status === "success" && (
-                      <Badge variant="default" className="bg-green-500">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Berhasil
-                      </Badge>
-                    )}
-                    {testResult.status === "error" && (
-                      <Badge variant="destructive">
-                        <XCircle className="w-3 h-3 mr-1" />
-                        Gagal
-                      </Badge>
-                    )}
-                    {testResult.status === "testing" && (
-                      <Badge variant="secondary">
-                        <AlertCircle className="w-3 h-3 mr-1" />
-                        Testing...
-                      </Badge>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {testResult.message && (
-                <Alert className={testResult.status === "success" ? "border-green-500" : "border-red-500"}>
-                  <AlertDescription>{testResult.message}</AlertDescription>
-                </Alert>
-              )}
-            </>
+            <Alert className="border-blue-500 bg-blue-50">
+              <AlertCircle className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                <strong>Cara Kerja:</strong> Sistem akan menghasilkan link WhatsApp otomatis dengan pesan yang sudah terisi. 
+                User hanya perlu membuka link dan klik "Kirim" di WhatsApp. Tidak perlu API key atau konfigurasi kompleks!
+              </AlertDescription>
+            </Alert>
           )}
         </CardContent>
       </Card>
