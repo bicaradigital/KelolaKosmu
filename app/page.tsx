@@ -1054,10 +1054,6 @@ export default function KostManagement() {
                     onAddReminderLog={addReminderLog}
                   />
                 </TabsContent>
-
-                <TabsContent value="settings">
-                  <WhatsAppSettings settings={settings} onSave={updateSettings} />
-                </TabsContent>
               </Tabs>
             </TabsContent>
           </Tabs>
