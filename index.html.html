@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kelola Kosmu — Manajemen Kos Praktis, Aman & Mudah</title>
+<meta name="description" content="Aplikasi manajemen kos terbaik untuk pemilik kos Indonesia. Kelola penyewa, tagihan otomatis, dan laporan keuangan dalam satu dashboard.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue: #1A4FBA;
+  --blue-dark: #0F3490;
+  --blue-mid: #1E5FD8;
+  --blue-light: #EEF3FF;
+  --gold: #F5C842;
+  --gold-dark: #D4A820;
+  --gold-pale: #FFFBEA;
+  --ink: #0D1117;
+  --ink2: #3D4555;
+  --ink3: #8892A4;
+  --white: #FFFFFF;
+  --border: #E4E8F0;
+  --paper: #F7F9FC;
+  --green: #16A34A;
+  --green-pale: #DCFCE7;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: var(--ink); background: var(--white);
+  line-height: 1.6; -webkit-font-smoothing: antialiased;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(255,255,255,0.95); backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  height: 66px; padding: 0 40px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 800; font-size: 18px; color: var(--blue); text-decoration: none;
+}
+.nav-logo-icon {
+  width: 36px; height: 36px; background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.nav-links { display: flex; align-items: center; gap: 32px; }
+.nav-links a { font-size: 14px; font-weight: 500; color: var(--ink2); text-decoration: none; transition: color .15s; }
+.nav-links a:hover { color: var(--blue); }
+.nav-cta {
+  background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+  color: white; font-size: 14px; font-weight: 700;
+  padding: 10px 22px; border-radius: 9px; text-decoration: none;
+  transition: opacity .15s, transform .1s; box-shadow: 0 2px 12px rgba(26,79,186,0.3);
+}
+.nav-cta:hover { opacity: .9; transform: translateY(-1px); }
+
+/* ── HERO ── */
+.hero {
+  background: linear-gradient(160deg, #0A2472 0%, #1A4FBA 50%, #1E6DD8 100%);
+  min-height: 100vh; padding: 100px 40px 80px;
+  position: relative; overflow: hidden;
+  display: flex; align-items: center;
+}
+.hero::before {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 80% at 80% 50%, rgba(245,200,66,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 10% 80%, rgba(255,255,255,0.04) 0%, transparent 60%);
+}
+/* Decorative chevrons like flyer */
+.hero-chevron {
+  position: absolute; right: -20px; top: 40px;
+  width: 160px; height: 160px; opacity: .5;
+}
+.hero-inner {
+  max-width: 1160px; margin: 0 auto; width: 100%;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center;
+  position: relative; z-index: 1;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(245,200,66,0.15); border: 1px solid rgba(245,200,66,0.4);
+  color: var(--gold); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  padding: 6px 14px; border-radius: 100px; margin-bottom: 24px;
+}
+.hero-badge::before { content:'●'; font-size:7px; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+.hero h1 {
+  font-size: clamp(36px, 4.5vw, 58px); font-weight: 900;
+  color: white; line-height: 1.1; margin-bottom: 20px; letter-spacing: -.02em;
+}
+.hero h1 .gold { color: var(--gold); }
+.hero-sub {
+  font-size: 16px; color: rgba(255,255,255,0.75); line-height: 1.7;
+  margin-bottom: 36px; max-width: 440px;
+}
+.hero-cta-group { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 40px; }
+.btn-gold {
+  background: var(--gold); color: var(--ink); font-size: 15px; font-weight: 800;
+  padding: 14px 30px; border-radius: 10px; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 8px;
+  box-shadow: 0 4px 20px rgba(245,200,66,0.4);
+  transition: transform .15s, box-shadow .15s;
+}
+.btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(245,200,66,0.5); }
+.btn-ghost {
+  color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 600;
+  text-decoration: none; display: flex; align-items: center; gap: 6px;
+  transition: color .15s;
+}
+.btn-ghost:hover { color: var(--gold); }
+.hero-trust {
+  display: flex; flex-wrap: wrap; gap: 20px;
+  padding-top: 28px; border-top: 1px solid rgba(255,255,255,0.12);
+}
+.trust-item { display: flex; align-items: center; gap: 7px; font-size: 13px; color: rgba(255,255,255,0.65); }
+.trust-check { color: var(--gold); font-size: 14px; }
+
+/* Phone mockup */
+.hero-visual { display: flex; justify-content: center; align-items: center; position: relative; }
+.phone-wrap {
+  position: relative; z-index: 2;
+  filter: drop-shadow(0 32px 64px rgba(0,0,0,0.35));
+}
+.phone-frame {
+  width: 270px; background: #0D1117; border-radius: 40px;
+  padding: 14px 10px; border: 2px solid rgba(255,255,255,0.12);
+  position: relative;
+}
+.phone-notch {
+  width: 80px; height: 22px; background: #0D1117;
+  border-radius: 0 0 16px 16px; margin: 0 auto 10px;
+}
+.phone-screen {
+  background: #F7F9FC; border-radius: 28px; overflow: hidden;
+  min-height: 480px;
+}
+.phone-app-header {
+  background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+  padding: 16px 16px 12px;
+}
+.phone-app-title { font-size: 13px; font-weight: 800; color: white; margin-bottom: 1px; }
+.phone-app-sub { font-size: 10px; color: rgba(255,255,255,0.6); }
+.phone-app-settings { float: right; margin-top: -28px; width: 28px; height: 28px; background: rgba(255,255,255,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+.phone-body { padding: 12px; }
+.phone-welcome {
+  background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+  border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;
+}
+.phone-welcome-title { font-size: 12px; font-weight: 800; color: white; margin-bottom: 4px; }
+.phone-welcome-item { font-size: 10px; color: rgba(255,255,255,0.75); display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
+.phone-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.phone-stat {
+  background: white; border-radius: 10px; padding: 10px 12px;
+  border: 1px solid var(--border);
+}
+.phone-stat-label { font-size: 9px; color: var(--ink3); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
+.phone-stat-value { font-size: 18px; font-weight: 800; color: var(--ink); }
+.phone-stat-sub { font-size: 9px; color: var(--blue); font-weight: 600; }
+.phone-section-title { font-size: 10px; font-weight: 700; color: var(--ink2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em; }
+.phone-room-item {
+  background: white; border-radius: 8px; padding: 8px 10px;
+  border: 1px solid var(--border); margin-bottom: 6px;
+  display: flex; align-items: center; gap: 8px;
+}
+.room-badge { font-size: 9px; font-weight: 700; background: var(--blue-light); color: var(--blue); padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
+.room-name { font-size: 10px; font-weight: 600; color: var(--ink); flex: 1; }
+.room-status { font-size: 9px; font-weight: 600; padding: 2px 7px; border-radius: 100px; }
+.s-lunas { background: var(--green-pale); color: var(--green); }
+.s-due { background: #FEF3C7; color: #B45309; }
+.s-late { background: #FEE2E2; color: #DC2626; }
+
+/* Floating notification */
+.float-notif {
+  position: absolute; bottom: 30px; right: -30px;
+  background: white; border-radius: 14px; padding: 12px 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  display: flex; align-items: center; gap: 10px;
+  min-width: 210px; border: 1px solid var(--border);
+  animation: floatUp 3s ease-in-out infinite;
+}
+@keyframes floatUp { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+.fn-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--blue-light); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.fn-title { font-size: 11px; font-weight: 700; color: var(--ink); }
+.fn-sub { font-size: 10px; color: var(--ink3); }
+
+/* Gold chevron decoration */
+.deco-chevron {
+  position: absolute; opacity: .15;
+  font-size: 120px; color: var(--gold); font-weight: 900;
+  line-height: 1; user-select: none; letter-spacing: -20px;
+}
+.deco-chevron.top-right { top: 20px; right: 0; }
+.deco-chevron.bot-left { bottom: 20px; left: 0; transform: rotate(180deg); }
+
+/* ── PROOF BAR ── */
+.proof-bar {
+  background: var(--gold); padding: 18px 40px;
+}
+.proof-bar-inner {
+  max-width: 1160px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: center; gap: 48px; flex-wrap: wrap;
+}
+.proof-bar-item { text-align: center; }
+.proof-bar-num { font-size: 24px; font-weight: 900; color: var(--ink); }
+.proof-bar-label { font-size: 12px; color: rgba(13,17,23,0.65); font-weight: 500; }
+.proof-divider { width: 1px; height: 36px; background: rgba(0,0,0,0.12); }
+
+/* ── SECTIONS ── */
+.section { padding: 88px 40px; }
+.section-inner { max-width: 1160px; margin: 0 auto; }
+.eyebrow {
+  font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--blue); margin-bottom: 10px;
+}
+.section-h {
+  font-size: clamp(26px, 3.5vw, 42px); font-weight: 900;
+  color: var(--ink); line-height: 1.2; letter-spacing: -.02em; margin-bottom: 14px;
+}
+.section-p { font-size: 16px; color: var(--ink2); line-height: 1.7; max-width: 520px; }
+
+/* ── PAIN ── */
+.pain-bg { background: var(--paper); }
+.pain-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; margin-top: 48px; }
+.pain-card {
+  background: white; border: 1px solid var(--border); border-radius: 14px;
+  padding: 24px; border-top: 3px solid #EF4444;
+}
+.pain-emoji { font-size: 28px; margin-bottom: 14px; }
+.pain-title { font-size: 14px; font-weight: 800; color: var(--ink); margin-bottom: 8px; }
+.pain-desc { font-size: 13px; color: var(--ink2); line-height: 1.65; }
+
+/* ── FEATURES ── */
+.features-bg { background: linear-gradient(170deg, #0A2472 0%, #1A4FBA 100%); }
+.feat-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 20px; margin-top: 52px; }
+.feat-card {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px; padding: 28px;
+  transition: background .2s, border-color .2s; cursor: default;
+}
+.feat-card:hover { background: rgba(255,255,255,0.1); border-color: rgba(245,200,66,0.4); }
+.feat-icon {
+  width: 50px; height: 50px; background: rgba(245,200,66,0.15); border-radius: 14px;
+  display: flex; align-items: center; justify-content: center; font-size: 24px;
+  margin-bottom: 18px;
+}
+.feat-title { font-size: 16px; font-weight: 800; color: white; margin-bottom: 8px; }
+.feat-desc { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.65; }
+.feat-tag {
+  display: inline-block; margin-top: 14px;
+  font-size: 10px; font-weight: 700; color: var(--gold);
+  background: rgba(245,200,66,0.12); padding: 3px 10px; border-radius: 100px;
+  letter-spacing: .05em; text-transform: uppercase;
+}
+
+/* ── HOW ── */
+.how-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 32px; margin-top: 52px; position: relative; }
+.how-grid::before {
+  content:''; position: absolute;
+  top: 32px; left: 18%; right: 18%; height: 2px;
+  background: linear-gradient(90deg, var(--blue), var(--gold), var(--blue));
+  opacity: .2;
+}
+.how-step { text-align: center; }
+.how-num {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: var(--blue); color: white;
+  font-size: 22px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px; position: relative; z-index: 1;
+  box-shadow: 0 4px 20px rgba(26,79,186,0.3);
+}
+.how-title { font-size: 15px; font-weight: 800; color: var(--ink); margin-bottom: 8px; }
+.how-desc { font-size: 13px; color: var(--ink2); line-height: 1.65; }
+
+/* ── PRICING - SINGLE ── */
+.pricing-bg { background: var(--paper); }
+.pricing-single {
+  max-width: 640px; margin: 52px auto 0;
+  background: white; border-radius: 24px;
+  border: 2px solid var(--blue);
+  box-shadow: 0 12px 48px rgba(26,79,186,0.15);
+  overflow: hidden;
+}
+.pricing-top {
+  background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+  padding: 36px 40px; text-align: center; position: relative;
+}
+.pricing-top::after {
+  content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
+  height: 40px;
+  background: white;
+  clip-path: ellipse(55% 100% at 50% 100%);
+}
+.pricing-badge-top {
+  display: inline-block;
+  background: var(--gold); color: var(--ink);
+  font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  padding: 4px 16px; border-radius: 100px; margin-bottom: 16px;
+}
+.pricing-name { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.7); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .08em; }
+.pricing-amount {
+  font-size: 52px; font-weight: 900; color: white; line-height: 1;
+  margin-bottom: 6px;
+}
+.pricing-amount-note { font-size: 14px; color: rgba(255,255,255,0.65); }
+.pricing-body { padding: 12px 40px 36px; }
+.pricing-features { list-style: none; display: flex; flex-direction: column; gap: 14px; margin: 28px 0 32px; }
+.pricing-features li {
+  display: flex; align-items: flex-start; gap: 12px;
+  font-size: 14px; color: var(--ink2); line-height: 1.5;
+}
+.feat-check {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--blue-light); color: var(--blue);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; flex-shrink: 0; margin-top: 1px;
+}
+.pricing-btn-main {
+  display: block; text-align: center;
+  background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+  color: white; font-size: 16px; font-weight: 800;
+  padding: 16px 32px; border-radius: 12px; text-decoration: none;
+  box-shadow: 0 4px 20px rgba(26,79,186,0.3);
+  transition: transform .15s, box-shadow .15s;
+}
+.pricing-btn-main:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(26,79,186,0.4); }
+.pricing-guarantee {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-top: 18px; font-size: 13px; color: var(--ink3);
+}
+.pricing-divider {
+  border: none; border-top: 1px solid var(--border); margin: 24px 0;
+}
+
+/* ── TESTIMONIALS ── */
+.testi-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; margin-top: 48px; }
+.testi-card {
+  background: white; border: 1px solid var(--border); border-radius: 16px;
+  padding: 24px 22px; display: flex; flex-direction: column; gap: 14px;
+  transition: box-shadow .2s, transform .2s;
+}
+.testi-card:hover { box-shadow: 0 8px 28px rgba(26,79,186,0.1); transform: translateY(-3px); }
+.testi-stars { color: var(--gold); font-size: 14px; letter-spacing: 2px; }
+.testi-text { font-size: 13px; color: var(--ink2); line-height: 1.75; font-style: italic; flex: 1; }
+.testi-author { display: flex; align-items: center; gap: 10px; }
+.testi-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 800; color: white; flex-shrink: 0;
+}
+.testi-name { font-size: 13px; font-weight: 700; color: var(--ink); }
+.testi-role { font-size: 11px; color: var(--ink3); }
+
+/* ── FAQ ── */
+.faq-bg { background: var(--paper); }
+.faq-wrap { max-width: 700px; margin: 48px auto 0; }
+.faq-item { border-bottom: 1px solid var(--border); }
+.faq-q {
+  padding: 20px 0; cursor: pointer;
+  font-size: 15px; font-weight: 700; color: var(--ink);
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+}
+.faq-icon {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--blue-light);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--blue); font-size: 16px; font-weight: 700;
+  flex-shrink: 0; transition: transform .25s, background .2s;
+}
+.faq-item.open .faq-icon { transform: rotate(45deg); background: var(--blue); color: white; }
+.faq-a {
+  font-size: 14px; color: var(--ink2); line-height: 1.7;
+  max-height: 0; overflow: hidden; transition: max-height .3s, padding .3s;
+}
+.faq-item.open .faq-a { max-height: 200px; padding-bottom: 18px; }
+
+/* ── CTA BOTTOM ── */
+.cta-section {
+  background: linear-gradient(135deg, #0A2472, #1A4FBA, #1E6DD8);
+  padding: 88px 40px; text-align: center; position: relative; overflow: hidden;
+}
+.cta-section::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 80% at 80% 50%, rgba(245,200,66,0.1) 0%, transparent 60%);
+}
+.cta-section h2 {
+  font-size: clamp(28px, 4vw, 50px); font-weight: 900;
+  color: white; line-height: 1.15; margin-bottom: 16px;
+  letter-spacing: -.02em; position: relative;
+}
+.cta-section h2 .gold { color: var(--gold); }
+.cta-section p { font-size: 16px; color: rgba(255,255,255,0.7); margin-bottom: 36px; position: relative; }
+.cta-note { margin-top: 16px; font-size: 13px; color: rgba(255,255,255,0.5); position: relative; }
+
+
+/* ── BICARA DIGITAL FOOTER ── */
+.bd-footer {
+  background: #0D1117;
+  padding: 20px 40px;
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.bd-label {
+  font-size: 12px; color: rgba(255,255,255,0.35);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: .04em;
+}
+.bd-logo {
+  display: flex; align-items: center; gap: 8px;
+}
+.bd-logo-text {
+  font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.6);
+  font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: .02em;
+}
+
+/* ── FOOTER ── */
+footer {
+  background: var(--ink); padding: 36px 40px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+}
+.footer-brand { color: white; font-weight: 800; font-size: 16px; }
+.footer-brand span { color: var(--gold); }
+.footer-links { display: flex; gap: 24px; }
+.footer-links a { font-size: 13px; color: var(--ink3); text-decoration: none; transition: color .15s; }
+.footer-links a:hover { color: white; }
+.footer-copy { font-size: 12px; color: var(--ink3); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  .hero { padding: 90px 20px 60px; }
+  .hero-inner { grid-template-columns: 1fr; gap: 48px; }
+  .hero-visual { order: -1; }
+  .float-notif { display: none; }
+  .phone-frame { width: 230px; }
+  .pain-grid, .feat-grid, .how-grid, .testi-grid { grid-template-columns: 1fr; }
+  .how-grid::before { display: none; }
+  .section { padding: 60px 20px; }
+  .pricing-top, .pricing-body { padding-left: 24px; padding-right: 24px; }
+  footer { flex-direction: column; text-align: center; padding: 28px 20px; }
+  .footer-links { justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .float-notif, .hero-badge::before { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-icon">🏠</div>
+    Kelola Kosmu
+  </a>
+  <div class="nav-links">
+    <a href="#fitur">Fitur</a>
+    <a href="#cara-kerja">Cara Kerja</a>
+    <a href="#harga">Harga</a>
+    <a href="#faq">FAQ</a>
+  </div>
+  <a href="#harga" class="nav-cta">Mulai Sekarang</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <!-- Gold chevron decoration like flyer -->
+  <div class="deco-chevron top-right" aria-hidden="true">&raquo;&raquo;</div>
+  <div class="deco-chevron bot-left" aria-hidden="true">&raquo;&raquo;</div>
+
+  <div class="hero-inner">
+    <div>
+      <div class="hero-badge">Manajemen Kos Modern</div>
+      <h1>Kelola kamar<br>dengan praktis,<br>aman, dan <span class="gold">mudah</span></h1>
+      <p class="hero-sub">Catat penyewa, kirim tagihan otomatis, pantau pemasukan — semua dari satu dashboard. Tidak perlu buku tulis, tidak perlu WA satu per satu.</p>
+      <div class="hero-cta-group">
+        <a href="#harga" class="btn-gold">
+          ⚡ Mulai Sekarang
+        </a>
+        <a href="#fitur" class="btn-ghost">Lihat fitur →</a>
+      </div>
+      <div class="hero-trust">
+        <div class="trust-item"><span class="trust-check">✓</span> Bayar sekali, pakai selamanya</div>
+        <div class="trust-item"><span class="trust-check">✓</span> Tanpa biaya bulanan</div>
+        <div class="trust-item"><span class="trust-check">✓</span> Akses dari HP & laptop</div>
+        <div class="trust-item"><span class="trust-check">✓</span> Support via WhatsApp</div>
+      </div>
+    </div>
+
+    <!-- Phone mockup -->
+    <div class="hero-visual">
+      <div class="phone-wrap">
+        <div class="phone-frame">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="phone-app-header">
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:28px;height:28px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px">🏠</div>
+                <div>
+                  <div class="phone-app-title">Kost Management</div>
+                  <div class="phone-app-sub">Management System</div>
+                </div>
+                <div class="phone-app-settings" style="margin-left:auto">⚙️</div>
+              </div>
+            </div>
+            <div style="background:white;padding:8px 12px;font-size:10px;font-weight:600;color:var(--ink2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+              <span>Dashboard</span>
+              <span style="color:var(--ink3)">✕</span>
+            </div>
+            <div class="phone-body">
+              <div class="phone-welcome">
+                <div class="phone-welcome-title">Selamat Datang! 👋</div>
+                <div style="font-size:10px;color:rgba(255,255,255,0.7);margin-bottom:6px">Kelola kost Anda dengan mudah dan efisien</div>
+                <div class="phone-welcome-item">✅ <span>8 Kamar Terisi</span></div>
+                <div class="phone-welcome-item">🕐 <span>2 Pending Tagihan</span></div>
+              </div>
+              <div class="phone-stats">
+                <div class="phone-stat">
+                  <div class="phone-stat-label">Total Kamar</div>
+                  <div class="phone-stat-value">10</div>
+                  <div class="phone-stat-sub">8 terisi, 2 kosong</div>
+                </div>
+                <div class="phone-stat">
+                  <div class="phone-stat-label">Pemasukan</div>
+                  <div class="phone-stat-value" style="font-size:14px">7,2jt</div>
+                  <div class="phone-stat-sub">bulan ini</div>
+                </div>
+              </div>
+              <div class="phone-section-title">Status Kamar</div>
+              <div class="phone-room-item">
+                <span class="room-badge">K-01</span>
+                <span class="room-name">Budi Santoso</span>
+                <span class="room-status s-lunas">Lunas</span>
+              </div>
+              <div class="phone-room-item">
+                <span class="room-badge">K-02</span>
+                <span class="room-name">Siti Rahayu</span>
+                <span class="room-status s-due">Jatuh Tempo</span>
+              </div>
+              <div class="phone-room-item">
+                <span class="room-badge">K-03</span>
+                <span class="room-name">Ahmad Fauzi</span>
+                <span class="room-status s-lunas">Lunas</span>
+              </div>
+              <div style="display:flex;justify-content:space-around;padding:10px 0 4px;border-top:1px solid var(--border);margin-top:8px">
+                <span style="font-size:18px">≡</span>
+                <span style="font-size:18px">□</span>
+                <span style="font-size:18px">◁</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="float-notif">
+        <div class="fn-icon">🔔</div>
+        <div>
+          <div class="fn-title">Tagihan terkirim otomatis!</div>
+          <div class="fn-sub">K-02 · Siti — Rp 750.000</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROOF BAR -->
+<div class="proof-bar">
+  <div class="proof-bar-inner">
+    <div class="proof-bar-item">
+      <div class="proof-bar-num">250+</div>
+      <div class="proof-bar-label">Pemilik kos aktif</div>
+    </div>
+    <div class="proof-divider"></div>
+    <div class="proof-bar-item">
+      <div class="proof-bar-num">1.200+</div>
+      <div class="proof-bar-label">Kamar dikelola</div>
+    </div>
+    <div class="proof-divider"></div>
+    <div class="proof-bar-item">
+      <div class="proof-bar-num">3 mnt</div>
+      <div class="proof-bar-label">Setup pertama</div>
+    </div>
+    <div class="proof-divider"></div>
+    <div class="proof-bar-item">
+      <div class="proof-bar-num">100%</div>
+      <div class="proof-bar-label">Web-based, no install</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAIN -->
+<section class="section pain-bg" id="masalah">
+  <div class="section-inner">
+    <div style="text-align:center;max-width:580px;margin:0 auto">
+      <div class="eyebrow">Masalah yang sering terjadi</div>
+      <h2 class="section-h">Kelola kos manual itu<br>melelahkan & berisiko</h2>
+      <p class="section-p" style="margin:0 auto">Banyak pemilik kos masih andalkan buku tulis, ingatan, dan WA manual — hasilnya tagihan sering kelewat, data berantakan, dan keuangan tidak terkontrol.</p>
+    </div>
+    <div class="pain-grid">
+      <div class="pain-card">
+        <div class="pain-emoji">📋</div>
+        <div class="pain-title">Data penyewa berceceran</div>
+        <div class="pain-desc">Nama, KTP, nomor HP, tanggal masuk — tersebar di buku, chat WA, dan ingatan. Susah dicari saat dibutuhkan mendadak.</div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-emoji">💸</div>
+        <div class="pain-title">Tagihan sering terlewat</div>
+        <div class="pain-desc">Lupa ingatkan penyewa, lupa siapa yang sudah bayar, lupa hitung total pemasukan. Uang yang harusnya masuk malah jadi nunggak.</div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-emoji">📊</div>
+        <div class="pain-title">Tidak ada laporan keuangan</div>
+        <div class="pain-desc">Tidak tahu berapa untung bersih setelah listrik, air, dan perawatan. Bisnis berjalan tapi tidak pernah tahu kondisi sesungguhnya.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section features-bg" id="fitur">
+  <div class="section-inner">
+    <div style="text-align:center;max-width:560px;margin:0 auto">
+      <div class="eyebrow" style="color:rgba(245,200,66,0.8)">Fitur Lengkap</div>
+      <h2 class="section-h" style="color:white">Semua yang kamu butuhkan<br>dalam satu tempat</h2>
+      <p class="section-p" style="color:rgba(255,255,255,0.6);margin:0 auto">Dirancang khusus untuk pemilik kos Indonesia — simpel, langsung bisa dipakai, tanpa training.</p>
+    </div>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="feat-icon">👥</div>
+        <div class="feat-title">Manajemen Penyewa & Kamar</div>
+        <div class="feat-desc">Catat data lengkap setiap penyewa — nama, KTP, kontak, tanggal masuk & keluar. Status kamar tersedia, terisi, atau dalam perawatan — semua terpantau real-time.</div>
+        <span class="feat-tag">Data Terpusat</span>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔔</div>
+        <div class="feat-title">Notifikasi Tagihan Otomatis</div>
+        <div class="feat-desc">Sistem kirim pengingat tagihan otomatis ke penyewa sesuai jadwal yang kamu set. Tidak perlu WA satu per satu lagi — tinggal pantau siapa yang sudah bayar.</div>
+        <span class="feat-tag">Hemat Waktu</span>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📊</div>
+        <div class="feat-title">Laporan Keuangan Otomatis</div>
+        <div class="feat-desc">Rekap pemasukan bulanan, tunggakan, dan histori pembayaran tersaji otomatis. Export ke PDF kapan saja untuk dokumentasi atau pelaporan.</div>
+        <span class="feat-tag">Transparan</span>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📱</div>
+        <div class="feat-title">Akses dari Mana Saja</div>
+        <div class="feat-desc">Berbasis web — buka dari HP, tablet, atau laptop tanpa perlu install aplikasi apapun. Data tersimpan aman di cloud, tidak hilang meski ganti HP.</div>
+        <span class="feat-tag">Web-Based</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="cara-kerja">
+  <div class="section-inner">
+    <div style="text-align:center;max-width:500px;margin:0 auto">
+      <div class="eyebrow">Cara Kerja</div>
+      <h2 class="section-h">Mulai dalam 3 menit</h2>
+      <p class="section-p" style="margin:0 auto">Tidak perlu pelatihan khusus. Siapapun bisa langsung pakai hari ini.</p>
+    </div>
+    <div class="how-grid">
+      <div class="how-step">
+        <div class="how-num">1</div>
+        <div class="how-title">Daftar & setup kos</div>
+        <div class="how-desc">Input jumlah kamar dan data dasar kos kamu. Selesai dalam hitungan menit tanpa bantuan teknis.</div>
+      </div>
+      <div class="how-step">
+        <div class="how-num">2</div>
+        <div class="how-title">Tambah data penyewa</div>
+        <div class="how-desc">Isi nama, kamar, tanggal sewa, dan jumlah tagihan. Sistem langsung aktif dan siap kirim notifikasi.</div>
+      </div>
+      <div class="how-step">
+        <div class="how-num">3</div>
+        <div class="how-title">Sistem bekerja sendiri</div>
+        <div class="how-desc">Tagihan terkirim otomatis, laporan tersusun rapi, kamu tinggal pantau dashboard dari mana saja.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING - SINGLE -->
+<section class="section pricing-bg" id="harga">
+  <div class="section-inner">
+    <div style="text-align:center;max-width:500px;margin:0 auto">
+      <div class="eyebrow">Harga</div>
+      <h2 class="section-h">Satu harga, semua fitur,<br>bayar sekali</h2>
+      <p class="section-p" style="margin:0 auto">Tidak ada pilihan yang membingungkan. Satu paket lengkap untuk semua pemilik kos.</p>
+    </div>
+    <div class="pricing-single">
+      <div class="pricing-top">
+        <div class="pricing-badge-top">⭐ PAKET LENGKAP</div>
+        <div class="pricing-name">Kelola Kosmu Pro</div>
+        <div class="pricing-amount">Rp 149.000</div>
+        <div class="pricing-amount-note">Bayar sekali · Pakai selamanya · Kamar tidak terbatas</div>
+      </div>
+      <div class="pricing-body">
+        <ul class="pricing-features">
+          <li><div class="feat-check">✓</div><span><strong>Kamar tidak terbatas</strong> — cocok untuk kos 1 kamar sampai puluhan kamar</span></li>
+          <li><div class="feat-check">✓</div><span><strong>Data penyewa lengkap</strong> — nama, KTP, kontak, tanggal masuk & keluar</span></li>
+          <li><div class="feat-check">✓</div><span><strong>Notifikasi tagihan otomatis</strong> — sistem kirim pengingat tanpa kamu harus WA manual</span></li>
+          <li><div class="feat-check">✓</div><span><strong>Laporan keuangan otomatis</strong> — rekap pemasukan, tunggakan, dan histori bayar</span></li>
+          <li><div class="feat-check">✓</div><span><strong>Export PDF</strong> — unduh laporan kapan saja untuk dokumentasi</span></li>
+          <li><div class="feat-check">✓</div><span><strong>Akses web dari HP & laptop</strong> — tanpa install aplikasi apapun</span></li>
+          <li><div class="feat-check">✓</div><span><strong>Update seumur hidup</strong> — fitur baru gratis, tidak perlu bayar lagi</span></li>
+        </ul>
+        <hr class="pricing-divider">
+        <a href="http://lynk.id/mudaberhasil/3pyr08p7ygx2" class="pricing-btn-main">🚀 Mulai Sekarang — Rp 149.000</a>
+        <div class="pricing-guarantee">💬 Ada pertanyaan? Kami siap bantu via WhatsApp</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="section">
+  <div class="section-inner">
+    <div style="text-align:center;max-width:500px;margin:0 auto">
+      <div class="eyebrow">Testimoni</div>
+      <h2 class="section-h">Kata pemilik kos yang<br>sudah pakai</h2>
+    </div>
+    <div class="testi-grid">
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Dulu saya WA penyewa satu-satu tiap awal bulan. Sekarang sistem yang kerja sendiri. Hemat minimal 2 jam per bulan dan tidak ada lagi yang telat bayar tanpa diingatkan."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">BR</div>
+          <div>
+            <div class="testi-name">Bapak Rudianto</div>
+            <div class="testi-role">Pemilik kos 8 kamar · Semarang</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Yang paling saya suka laporan keuangannya. Langsung keliatan bulan ini untung berapa, siapa yang masih nunggak, dan histori bayar tiap penyewa. Simple banget."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">SW</div>
+          <div>
+            <div class="testi-name">Ibu Sri Wahyuni</div>
+            <div class="testi-role">Pemilik kos 12 kamar · Yogyakarta</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Awalnya ragu karena tidak terlalu paham teknologi. Ternyata gampang banget. Setup 3 menit, langsung jalan. Sekarang saya pantau kos dari mana saja pakai HP."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">HP</div>
+          <div>
+            <div class="testi-name">Hendra Pratama</div>
+            <div class="testi-role">Pemilik kos 5 kamar · Bandung</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section faq-bg" id="faq">
+  <div class="section-inner">
+    <div style="text-align:center;max-width:500px;margin:0 auto">
+      <div class="eyebrow">FAQ</div>
+      <h2 class="section-h">Pertanyaan yang sering ditanya</h2>
+    </div>
+    <div class="faq-wrap">
+      <div class="faq-item">
+        <div class="faq-q">Apakah ada biaya langganan bulanan? <div class="faq-icon">+</div></div>
+        <div class="faq-a">Tidak ada sama sekali. Kamu cukup bayar Rp 149.000 sekali dan bisa pakai selamanya. Tidak ada biaya tersembunyi, tidak ada tagihan bulanan, tidak ada kejutan.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Berapa batas maksimal kamar yang bisa dikelola? <div class="faq-icon">+</div></div>
+        <div class="faq-a">Tidak ada batas. Satu harga mencakup kamar tidak terbatas — baik itu 3 kamar maupun 50 kamar, harganya tetap sama.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Apakah bisa diakses dari HP? <div class="faq-icon">+</div></div>
+        <div class="faq-a">Ya, Kelola Kosmu berbasis web sehingga bisa diakses dari browser HP, tablet, maupun laptop tanpa perlu install aplikasi apapun. Cukup buka browser dan login.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Bagaimana sistem notifikasi tagihan bekerja? <div class="faq-icon">+</div></div>
+        <div class="faq-a">Kamu cukup set tanggal jatuh tempo tagihan tiap penyewa. Sistem akan otomatis kirim pengingat sesuai jadwal — kamu tidak perlu melakukan apapun secara manual.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Bagaimana jika saya butuh bantuan setelah beli? <div class="faq-icon">+</div></div>
+        <div class="faq-a">Kami menyediakan support via WhatsApp. Jika ada pertanyaan teknis atau kendala saat setup, tim kami siap membantu sampai kamu bisa menggunakan aplikasinya dengan lancar.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BOTTOM -->
+<section class="cta-section">
+  <div class="deco-chevron top-right" style="opacity:.08" aria-hidden="true">&raquo;&raquo;</div>
+  <h2>Tingkatkan produktivitas<br>hunian kamu <span class="gold">hari ini</span></h2>
+  <p>Bergabung dengan ratusan pemilik kos yang sudah berhenti kelola manual.</p>
+  <a href="#harga" class="btn-gold" style="display:inline-flex">🚀 Mulai Sekarang — Rp 149.000</a>
+  <div class="cta-note">Bayar sekali · Pakai selamanya · Support WhatsApp siap membantu</div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">Kelola<span>Kosmu</span>.id</div>
+  <div class="footer-links">
+    <a href="#fitur">Fitur</a>
+    <a href="#harga">Harga</a>
+    <a href="#faq">FAQ</a>
+    <a href="mailto:hello@kelolakosmu.id">Kontak</a>
+  </div>
+  <div class="footer-copy">© 2025 kelolakosmu.id · All rights reserved</div>
+</footer>
+
+<script>
+document.querySelectorAll('.faq-item').forEach(item => {
+  item.querySelector('.faq-q').addEventListener('click', () => {
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  });
+});
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth' }); }
+  });
+});
+</script>
+
+<!-- BICARA DIGITAL FOOTER -->
+<div class="bd-footer">
+  <span class="bd-label">Dikembangkan oleh</span>
+  <div class="bd-logo">
+    <!-- Bicara Digital Logo SVG -->
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Orange bubble (left) -->
+      <rect x="1" y="6" width="14" height="14" rx="4" fill="#F5711A"/>
+      <!-- Teal bubble (right) -->
+      <rect x="13" y="8" width="14" height="14" rx="4" fill="#1A9E8F"/>
+      <!-- Overlap purple tint -->
+      <rect x="13" y="8" width="2" height="12" rx="1" fill="#7B4FA6" opacity="0.5"/>
+      <!-- Sound bars orange bubble -->
+      <rect x="4" y="11" width="2" height="4" rx="1" fill="white"/>
+      <rect x="7" y="9.5" width="2" height="7" rx="1" fill="white"/>
+      <rect x="10" y="11" width="2" height="4" rx="1" fill="white"/>
+      <!-- Sound bars teal bubble -->
+      <rect x="16" y="12" width="2" height="4" rx="1" fill="white"/>
+      <rect x="19" y="10.5" width="2" height="7" rx="1" fill="white"/>
+      <rect x="22" y="12" width="2" height="4" rx="1" fill="white"/>
+      <!-- Tail left -->
+      <polygon points="3,20 1,24 7,20" fill="#F5711A"/>
+      <!-- Tail right -->
+      <polygon points="25,22 27,26 21,22" fill="#1A9E8F"/>
+    </svg>
+    <span class="bd-logo-text">Bicara Digital</span>
+  </div>
+</div>
+
+</body>
+</html>
