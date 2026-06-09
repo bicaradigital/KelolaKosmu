@@ -87,3 +87,66 @@ export const generateWhatsAppLink = (
 ## Environment & Configuration
 
 Fitur ini **tidak memerlukan** konfigurasi WhatsApp Business API lagi. Field `whatsappConfig` di Settings masih disimpan untuk backward compatibility, tetapi tidak digunakan untuk reminder wa.me link.
+
+## UI/Settings Changes
+
+### Removed dari Settings Dialog
+- ❌ Tab "WhatsApp" - Sudah dihapus dari settings dialog
+- ❌ WhatsApp Settings component - Tidak lagi ditampilkan
+- ✅ Settings dialog sekarang hanya menampilkan: Kos Info & Keamanan
+
+### WhatsApp Integration Tab
+- ✅ Masih ada tab "WhatsApp" di navigation (untuk reminder feature)
+- ✅ Reminder Manager ditampilkan langsung (tanpa sub-tabs)
+- ❌ Tab "Pengaturan WhatsApp" - Sudah dihapus
+
+## Files Changed
+
+| File | Status | Keterangan |
+|------|--------|-----------|
+| `app/lib/whatsapp.ts` | ✅ Modified | Tambah `generateWhatsAppLink()` function |
+| `app/components/ReminderManager.tsx` | ✅ Modified | Remove API calls, add wa.me links |
+| `app/page.tsx` | ✅ Modified | Remove WhatsApp config UI |
+| `app/components/forms/WhatsAppSettings.tsx` | ⚠️ Unused | Masih ada tapi tidak diimport |
+
+## Complete User Flow
+
+```
+┌─────────────────────────────────────────┐
+│  Admin di WhatsApp Integration Tab      │
+└─────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│  Lihat daftar reminder (sebelum jatuh   │
+│  tempo / terlambat) di Reminder Manager │
+└─────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│  Klik tombol "Buka WA" pada payment     │
+│  yang ingin diingatkan                  │
+└─────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│  App generate wa.me link dengan pesan:  │
+│  "Halo [Nama], sewa kamar [No]          │
+│   jatuh tempo [Tanggal]"                │
+└─────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│  Link membuka WhatsApp (web/mobile)     │
+│  dengan pesan sudah terisi              │
+└─────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│  Penghuni tinggal klik "Send"           │
+│  Pesan terkirim ✓                       │
+└─────────────────────────────────────────┘
+```
+
+## Git Commits
+
+```
+cfc2e39 - Remove WhatsApp API configuration requirement
+f47c529 - Fix: Remove remaining WhatsAppSettings reference
+88036f3 - Remove WhatsApp settings tab from UI
+```
