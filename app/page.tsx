@@ -32,6 +32,7 @@ import RoomForm from "./components/forms/RoomForm"
 import TenantForm from "./components/forms/TenantForm"
 import PaymentForm from "./components/forms/PaymentForm"
 import FinancialForm from "./components/forms/FinancialForm"
+import FinancialReportExporter from "./components/FinancialReportExporter"
 import ReminderManager from "./components/ReminderManager"
 import SecuritySettings from "./components/SecuritySettings"
 import NavigationTabs from "./components/NavigationTabs"
@@ -915,6 +916,20 @@ export default function KostManagement() {
                   </CardContent>
                 </Card>
               </div>
+
+              {/* Export Laporan Keuangan */}
+              <FinancialReportExporter
+                records={financialRecords.map((record) => ({
+                  id: record.id,
+                  type: record.type as 'income' | 'expense',
+                  category: financialCategories.find((cat) => cat.id === record.category)?.name || record.category,
+                  description: record.description,
+                  amount: record.amount,
+                  date: record.date,
+                  paymentMethod: record.paymentMethod,
+                }))}
+                kosName={boardingHouse.name}
+              />
 
               {/* Financial Records Table */}
               <Card className="border-0 shadow-lg">
