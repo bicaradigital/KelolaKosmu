@@ -7,8 +7,8 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "v0 App",
-  description: "Created with v0",
+  title: "KELOLA KOSMU - Sistem Manajemen Kos",
+  description: "Aplikasi manajemen kos terpadu untuk pengelolaan penghuni, pembayaran, dan keuangan",
   generator: "v0.app",
   icons: {
     icon: [
@@ -21,8 +21,8 @@ export const metadata: Metadata = {
         media: "(prefers-color-scheme: dark)",
       },
       {
-        url: "/icon.svg",
-        type: "image/svg+xml",
+        url: "/favicon.png",
+        type: "image/png",
       },
     ],
     apple: "/apple-icon.png",
