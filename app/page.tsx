@@ -32,7 +32,6 @@ import RoomForm from "./components/forms/RoomForm"
 import TenantForm from "./components/forms/TenantForm"
 import PaymentForm from "./components/forms/PaymentForm"
 import FinancialForm from "./components/forms/FinancialForm"
-import WhatsAppSettings from "./components/forms/WhatsAppSettings"
 import ReminderManager from "./components/ReminderManager"
 import SecuritySettings from "./components/SecuritySettings"
 import NavigationTabs from "./components/NavigationTabs"
@@ -193,25 +192,16 @@ export default function KostManagement() {
                   <span className="hidden sm:inline">Pengaturan</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <Tabs defaultValue="boarding-house" className="space-y-6">
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="boarding-house">Kos Info</TabsTrigger>
-                    <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
                     <TabsTrigger value="security">Keamanan</TabsTrigger>
                   </TabsList>
                   <TabsContent value="boarding-house">
                     <BoardingHouseSettings
                       boardingHouse={boardingHouse}
                       onUpdate={updateBoardingHouse}
-                    />
-                  </TabsContent>
-                  <TabsContent value="whatsapp">
-                    <WhatsAppSettings
-                      settings={settings}
-                      onSave={(newSettings) => {
-                        updateSettings(newSettings)
-                      }}
                     />
                   </TabsContent>
                   <TabsContent value="security">

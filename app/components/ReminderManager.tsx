@@ -1,12 +1,8 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { MessageCircle, Send, Clock, CheckCircle, XCircle, AlertTriangle, Calendar, Users } from "lucide-react"
-import { WhatsAppService, generateWhatsAppLink } from "@/app/lib/whatsapp"
+import { MessageCircle, Clock, CheckCircle, AlertTriangle, Calendar, Users } from "lucide-react"
+import { generateWhatsAppLink } from "@/app/lib/whatsapp"
 import {
   formatCurrency,
   formatDate,
@@ -39,15 +35,6 @@ export default function ReminderManager({
   onUpdatePayment,
   onAddReminderLog,
 }: ReminderManagerProps) {
-  const whatsappService = settings.whatsappConfig?.enabled
-    ? new WhatsAppService({
-        apiUrl: settings.whatsappConfig.apiUrl,
-        accessToken: settings.whatsappConfig.accessToken,
-        phoneNumberId: settings.whatsappConfig.phoneNumberId,
-        businessAccountId: settings.whatsappConfig.businessAccountId,
-      })
-    : null
-
   // Get payments that need reminders
   const getPaymentsNeedingReminders = () => {
     const today = new Date()
@@ -94,27 +81,6 @@ export default function ReminderManager({
   }
 
   const reminderData = getPaymentsNeedingReminders()
-
-  if (!settings.whatsappConfig?.enabled) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageCircle className="w-5 h-5" />
-            WhatsApp Reminder
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Alert>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              WhatsApp reminder belum diaktifkan. Silakan konfigurasi di pengaturan terlebih dahulu.
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
-    )
-  }
 
   return (
     <div className="space-y-6">
