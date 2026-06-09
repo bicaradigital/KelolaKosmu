@@ -1027,34 +1027,15 @@ export default function KostManagement() {
                 <p className="text-blue-600 mt-1">Kelola reminder dan notifikasi WhatsApp</p>
               </div>
 
-              <Tabs defaultValue="reminders" className="space-y-6">
-                <TabsList className="bg-white shadow-md border border-blue-100">
-                  <TabsTrigger
-                    value="reminders"
-                    className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-                  >
-                    Reminder Manager
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="settings"
-                    className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-                  >
-                    Pengaturan WhatsApp
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="reminders">
-                  <ReminderManager
-                    payments={payments}
-                    tenants={tenants}
-                    rooms={rooms}
-                    settings={settings}
-                    reminderLogs={reminderLogs}
-                    onUpdatePayment={updatePayment}
-                    onAddReminderLog={addReminderLog}
-                  />
-                </TabsContent>
-              </Tabs>
+              <ReminderManager
+                payments={payments}
+                tenants={tenants}
+                rooms={rooms}
+                settings={settings}
+                reminderLogs={reminderLogs}
+                onUpdatePayment={updatePayment}
+                onAddReminderLog={addReminderLog}
+              />
             </TabsContent>
           </Tabs>
 
