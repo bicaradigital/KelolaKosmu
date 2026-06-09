@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog"
 import {
   Users,
   DollarSign,
@@ -186,15 +186,20 @@ export default function KostManagement() {
                 <p className="text-xs text-blue-400">Dashboard & Analytics</p>
               </div>
             </div>
-            <Dialog open={showSettings} onOpenChange={setShowSettings}>
-              <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg text-xs sm:text-sm py-2 sm:py-auto flex-shrink-0">
-                  <Settings className="w-4 h-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">Pengaturan</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                <Tabs defaultValue="boarding-house" className="space-y-6">
+              <Dialog open={showSettings} onOpenChange={setShowSettings}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Pengaturan
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <DialogTitle className="sr-only">Pengaturan Sistem</DialogTitle>
+                  <Tabs defaultValue="boarding-house" className="space-y-6">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="boarding-house">Kos Info</TabsTrigger>
                     <TabsTrigger value="security">Keamanan</TabsTrigger>
@@ -918,18 +923,20 @@ export default function KostManagement() {
               </div>
 
               {/* Export Laporan Keuangan */}
-              <FinancialReportExporter
-                records={financialRecords.map((record) => ({
-                  id: record.id,
-                  type: record.type as 'income' | 'expense',
-                  category: financialCategories.find((cat) => cat.id === record.category)?.name || record.category,
-                  description: record.description,
-                  amount: record.amount,
-                  date: record.date,
-                  paymentMethod: record.paymentMethod,
-                }))}
-                kosName={boardingHouse.name}
-              />
+              {boardingHouse && (
+                <FinancialReportExporter
+                  records={financialRecords.map((record) => ({
+                    id: record.id,
+                    type: record.type as 'income' | 'expense',
+                    category: financialCategories.find((cat) => cat.id === record.category)?.name || record.category,
+                    description: record.description,
+                    amount: record.amount,
+                    date: record.date,
+                    paymentMethod: record.paymentMethod,
+                  }))}
+                  kosName={boardingHouse.name || 'Laporan Keuangan'}
+                />
+              )}
 
               {/* Financial Records Table */}
               <Card className="border-0 shadow-lg">

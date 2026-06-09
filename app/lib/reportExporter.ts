@@ -1,7 +1,7 @@
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import jsPDF from 'jspdf'
-import 'jspdf-autotable'
+import autoTable from 'jspdf-autotable'
 
 export interface FinancialRecord {
   id: string
@@ -160,7 +160,7 @@ export const generatePDF = (records: FinancialRecord[], kosName: string, startDa
   ])
 
   if (incomeTableData.length > 0) {
-    ;(doc as any).autoTable({
+    autoTable(doc, {
       head: [['Kategori', 'Transaksi', 'Jumlah']],
       body: incomeTableData,
       startY: yPos,
@@ -190,7 +190,7 @@ export const generatePDF = (records: FinancialRecord[], kosName: string, startDa
   ])
 
   if (expenseTableData.length > 0) {
-    ;(doc as any).autoTable({
+    autoTable(doc, {
       head: [['Kategori', 'Transaksi', 'Jumlah']],
       body: expenseTableData,
       startY: yPos,
@@ -216,7 +216,11 @@ export const generatePDF = (records: FinancialRecord[], kosName: string, startDa
   doc.setFontSize(12)
   doc.setFont(undefined, 'bold')
   const netLabel = netIncome >= 0 ? 'SALDO SURPLUS' : 'SALDO DEFISIT'
-  doc.setTextColor(netIncome >= 0 ? 40, 167, 69 : 220, 53, 69)
+  if (netIncome >= 0) {
+    doc.setTextColor(40, 167, 69)
+  } else {
+    doc.setTextColor(220, 53, 69)
+  }
   doc.text(`${netLabel}: ${formatCurrencyID(netIncome)}`, pageWidth / 2, yPos + 7, { align: 'center' })
 
   // Footer
