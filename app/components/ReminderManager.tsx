@@ -1,12 +1,8 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { MessageCircle, Send, Clock, CheckCircle, XCircle, AlertTriangle, Calendar, Users } from "lucide-react"
-import { WhatsAppService } from "@/app/lib/whatsapp"
+import { MessageCircle, Clock, CheckCircle, AlertTriangle, Calendar, Users } from "lucide-react"
+import { generateWhatsAppLink } from "@/app/lib/whatsapp"
 import {
   formatCurrency,
   formatDate,
@@ -39,18 +35,6 @@ export default function ReminderManager({
   onUpdatePayment,
   onAddReminderLog,
 }: ReminderManagerProps) {
-  const [sending, setSending] = useState<string[]>([])
-  const [results, setResults] = useState<{ [key: string]: { success: boolean; message: string } }>({})
-
-  const whatsappService = settings.whatsappConfig?.enabled
-    ? new WhatsAppService({
-        apiUrl: settings.whatsappConfig.apiUrl,
-        accessToken: settings.whatsappConfig.accessToken,
-        phoneNumberId: settings.whatsappConfig.phoneNumberId,
-        businessAccountId: settings.whatsappConfig.businessAccountId,
-      })
-    : null
-
   // Get payments that need reminders
   const getPaymentsNeedingReminders = () => {
     const today = new Date()
@@ -96,109 +80,7 @@ export default function ReminderManager({
     return results
   }
 
-  const sendReminder = async (payment: Payment, tenant: Tenant, room: Room, type: "before_due" | "overdue") => {
-    if (!whatsappService) return
-
-    setSending((prev) => [...prev, payment.id])
-
-    try {
-      let success = false
-
-      if (type === "before_due") {
-        success = await whatsappService.sendPaymentReminder(
-          tenant.phone,
-          tenant.name,
-          room.number,
-          payment.amount,
-          payment.dueDate,
-          settings.kosName,
-        )
-      } else {
-        const daysOverdue = getDaysOverdue(payment.dueDate)
-        success = await whatsappService.sendOverdueNotice(
-          tenant.phone,
-          tenant.name,
-          room.number,
-          payment.amount,
-          payment.dueDate,
-          daysOverdue,
-          settings.kosName,
-        )
-      }
-
-      // Log the reminder
-      const log: ReminderLog = {
-        id: generateId(),
-        paymentId: payment.id,
-        tenantId: tenant.id,
-        type,
-        sentDate: new Date().toISOString(),
-        success,
-        message: success ? "Reminder sent successfully" : "Failed to send reminder",
-      }
-
-      onAddReminderLog(log)
-
-      // Update payment reminder status
-      onUpdatePayment(payment.id, {
-        reminderSent: success,
-        reminderSentDate: success ? new Date().toISOString() : undefined,
-      })
-
-      setResults((prev) => ({
-        ...prev,
-        [payment.id]: {
-          success,
-          message: success ? "Reminder berhasil dikirim!" : "Gagal mengirim reminder",
-        },
-      }))
-    } catch (error) {
-      console.error("Error sending reminder:", error)
-      setResults((prev) => ({
-        ...prev,
-        [payment.id]: {
-          success: false,
-          message: "Terjadi kesalahan saat mengirim reminder",
-        },
-      }))
-    } finally {
-      setSending((prev) => prev.filter((id) => id !== payment.id))
-    }
-  }
-
-  const sendBulkReminders = async (
-    paymentList: Array<Payment & { tenant: Tenant; room: Room }>,
-    type: "before_due" | "overdue",
-  ) => {
-    for (const item of paymentList) {
-      await sendReminder(item, item.tenant, item.room, type)
-      // Add delay between messages to avoid rate limiting
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-    }
-  }
-
   const reminderData = getPaymentsNeedingReminders()
-
-  if (!settings.whatsappConfig?.enabled) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageCircle className="w-5 h-5" />
-            WhatsApp Reminder
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Alert>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              WhatsApp reminder belum diaktifkan. Silakan konfigurasi di pengaturan terlebih dahulu.
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
-    )
-  }
 
   return (
     <div className="space-y-6">
@@ -267,63 +149,43 @@ export default function ReminderManager({
                   Pembayaran yang akan jatuh tempo dalam {settings.reminderSettings?.daysBefore || 3} hari
                 </CardDescription>
               </div>
-              <Button
-                onClick={() => sendBulkReminders(reminderData.beforeDue, "before_due")}
-                disabled={sending.length > 0}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Send className="w-4 h-4 mr-2" />
-                Kirim Semua
-              </Button>
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {reminderData.beforeDue.map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex-1">
-                    <p className="font-medium">{item.tenant.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Kamar {item.room.number} - {formatCurrency(item.amount)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Jatuh tempo: {formatDate(item.dueDate)} ({item.daysUntil} hari lagi)
-                    </p>
-                  </div>
+              {reminderData.beforeDue.map((item) => {
+                const waLink = generateWhatsAppLink(
+                  item.tenant.phone,
+                  item.tenant.name,
+                  item.room.number,
+                  item.dueDate,
+                )
+                return (
+                  <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex-1">
+                      <p className="font-medium">{item.tenant.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Kamar {item.room.number} - {formatCurrency(item.amount)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Jatuh tempo: {formatDate(item.dueDate)} ({item.daysUntil} hari lagi)
+                      </p>
+                    </div>
 
-                  <div className="flex items-center gap-2">
-                    {results[item.id] && (
-                      <Badge variant={results[item.id].success ? "default" : "destructive"}>
-                        {results[item.id].success ? (
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                        ) : (
-                          <XCircle className="w-3 h-3 mr-1" />
-                        )}
-                        {results[item.id].message}
-                      </Badge>
-                    )}
-
-                    <Button
-                      size="sm"
-                      onClick={() => sendReminder(item, item.tenant, item.room, "before_due")}
-                      disabled={sending.includes(item.id)}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      {sending.includes(item.id) ? (
-                        <>
-                          <Clock className="w-3 h-3 mr-1 animate-spin" />
-                          Mengirim...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-3 h-3 mr-1" />
-                          Kirim
-                        </>
-                      )}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={waLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-9 px-3"
+                      >
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        Buka WA
+                      </a>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </CardContent>
         </Card>
@@ -341,63 +203,43 @@ export default function ReminderManager({
                 </CardTitle>
                 <CardDescription>Pembayaran yang sudah lewat jatuh tempo</CardDescription>
               </div>
-              <Button
-                onClick={() => sendBulkReminders(reminderData.overdue, "overdue")}
-                disabled={sending.length > 0}
-                variant="destructive"
-              >
-                <Send className="w-4 h-4 mr-2" />
-                Kirim Semua
-              </Button>
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {reminderData.overdue.map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg border-red-200">
-                  <div className="flex-1">
-                    <p className="font-medium">{item.tenant.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Kamar {item.room.number} - {formatCurrency(item.amount)}
-                    </p>
-                    <p className="text-xs text-red-600">
-                      Terlambat {item.daysOverdue} hari (jatuh tempo: {formatDate(item.dueDate)})
-                    </p>
-                  </div>
+              {reminderData.overdue.map((item) => {
+                const waLink = generateWhatsAppLink(
+                  item.tenant.phone,
+                  item.tenant.name,
+                  item.room.number,
+                  item.dueDate,
+                )
+                return (
+                  <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg border-red-200">
+                    <div className="flex-1">
+                      <p className="font-medium">{item.tenant.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Kamar {item.room.number} - {formatCurrency(item.amount)}
+                      </p>
+                      <p className="text-xs text-red-600">
+                        Terlambat {item.daysOverdue} hari (jatuh tempo: {formatDate(item.dueDate)})
+                      </p>
+                    </div>
 
-                  <div className="flex items-center gap-2">
-                    {results[item.id] && (
-                      <Badge variant={results[item.id].success ? "default" : "destructive"}>
-                        {results[item.id].success ? (
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                        ) : (
-                          <XCircle className="w-3 h-3 mr-1" />
-                        )}
-                        {results[item.id].message}
-                      </Badge>
-                    )}
-
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => sendReminder(item, item.tenant, item.room, "overdue")}
-                      disabled={sending.includes(item.id)}
-                    >
-                      {sending.includes(item.id) ? (
-                        <>
-                          <Clock className="w-3 h-3 mr-1 animate-spin" />
-                          Mengirim...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-3 h-3 mr-1" />
-                          Kirim
-                        </>
-                      )}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={waLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-red-600 text-white hover:bg-red-700 h-9 px-3"
+                      >
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        Buka WA
+                      </a>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </CardContent>
         </Card>

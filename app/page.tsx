@@ -32,7 +32,6 @@ import RoomForm from "./components/forms/RoomForm"
 import TenantForm from "./components/forms/TenantForm"
 import PaymentForm from "./components/forms/PaymentForm"
 import FinancialForm from "./components/forms/FinancialForm"
-import WhatsAppSettings from "./components/forms/WhatsAppSettings"
 import ReminderManager from "./components/ReminderManager"
 import SecuritySettings from "./components/SecuritySettings"
 import NavigationTabs from "./components/NavigationTabs"
@@ -193,25 +192,16 @@ export default function KostManagement() {
                   <span className="hidden sm:inline">Pengaturan</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <Tabs defaultValue="boarding-house" className="space-y-6">
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="boarding-house">Kos Info</TabsTrigger>
-                    <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
                     <TabsTrigger value="security">Keamanan</TabsTrigger>
                   </TabsList>
                   <TabsContent value="boarding-house">
                     <BoardingHouseSettings
                       boardingHouse={boardingHouse}
                       onUpdate={updateBoardingHouse}
-                    />
-                  </TabsContent>
-                  <TabsContent value="whatsapp">
-                    <WhatsAppSettings
-                      settings={settings}
-                      onSave={(newSettings) => {
-                        updateSettings(newSettings)
-                      }}
                     />
                   </TabsContent>
                   <TabsContent value="security">
@@ -1037,38 +1027,15 @@ export default function KostManagement() {
                 <p className="text-blue-600 mt-1">Kelola reminder dan notifikasi WhatsApp</p>
               </div>
 
-              <Tabs defaultValue="reminders" className="space-y-6">
-                <TabsList className="bg-white shadow-md border border-blue-100">
-                  <TabsTrigger
-                    value="reminders"
-                    className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-                  >
-                    Reminder Manager
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="settings"
-                    className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-                  >
-                    Pengaturan WhatsApp
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="reminders">
-                  <ReminderManager
-                    payments={payments}
-                    tenants={tenants}
-                    rooms={rooms}
-                    settings={settings}
-                    reminderLogs={reminderLogs}
-                    onUpdatePayment={updatePayment}
-                    onAddReminderLog={addReminderLog}
-                  />
-                </TabsContent>
-
-                <TabsContent value="settings">
-                  <WhatsAppSettings settings={settings} onSave={updateSettings} />
-                </TabsContent>
-              </Tabs>
+              <ReminderManager
+                payments={payments}
+                tenants={tenants}
+                rooms={rooms}
+                settings={settings}
+                reminderLogs={reminderLogs}
+                onUpdatePayment={updatePayment}
+                onAddReminderLog={addReminderLog}
+              />
             </TabsContent>
           </Tabs>
 

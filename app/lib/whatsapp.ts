@@ -202,3 +202,28 @@ export const validatePhoneNumber = (phone: string): boolean => {
   // Indonesian phone numbers should be 10-13 digits after country code
   return /^62\d{9,12}$/.test(formatted)
 }
+
+export const generateWhatsAppLink = (
+  phoneNumber: string,
+  tenantName: string,
+  roomNumber: string,
+  dueDate: string,
+): string => {
+  const formattedPhone = formatPhoneNumber(phoneNumber)
+  
+  // Format date to Indonesian format (DD/MM/YYYY)
+  const date = new Date(dueDate)
+  const day = String(date.getDate()).padStart(2, "0")
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const year = date.getFullYear()
+  const formattedDate = `${day}/${month}/${year}`
+
+  // Create message text
+  const messageText = `Halo ${tenantName}, sewa kamar ${roomNumber} jatuh tempo ${formattedDate}`
+  
+  // Encode message for URL
+  const encodedMessage = encodeURIComponent(messageText)
+  
+  // Return wa.me link
+  return `https://wa.me/${formattedPhone}?text=${encodedMessage}`
+}
