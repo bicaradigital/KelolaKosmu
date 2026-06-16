@@ -1,7 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { isSetupCompleted } from "@/app/lib/setupStorage"
+import LicenseActivation from "./components/LicenseActivation"
+import { useLicense } from "@/app/hooks/useLicense"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -73,6 +76,8 @@ export default function KostManagement() {
     restoreFromBackup,
   } = useData()
 
+  const { isActivated: licenseActivated, isLoading: licenseLoading } = useLicense()
+
   const [activeTab, setActiveTab] = useState("dashboard")
   const [showRoomForm, setShowRoomForm] = useState(false)
   const [showTenantForm, setShowTenantForm] = useState(false)
@@ -84,10 +89,29 @@ export default function KostManagement() {
   const [editingPayment, setEditingPayment] = useState(null)
   const [editingFinancial, setEditingFinancial] = useState(null)
   const [showSetupWizard, setShowSetupWizard] = useState(!boardingHouse)
+  const [showLicenseActivation, setShowLicenseActivation] = useState(!licenseActivated)
+
+  // Check setup completion on mount
+  useEffect(() => {
+    if (!boardingHouse && isSetupCompleted()) {
+      // Setup was completed before, don't show wizard
+      setShowSetupWizard(false)
+    } else if (!boardingHouse) {
+      // No boarding house and setup not completed, show wizard
+      setShowSetupWizard(true)
+    }
+  }, [boardingHouse])
+
+  // Check license activation on mount
+  useEffect(() => {
+    if (!licenseLoading) {
+      setShowLicenseActivation(!licenseActivated)
+    }
+  }, [licenseActivated, licenseLoading])
 
   const stats = getStats()
 
-  if (!isLoaded) {
+  if (!isLoaded || licenseLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center">
         <div className="text-center">
@@ -100,6 +124,17 @@ export default function KostManagement() {
           <p className="mt-6 text-blue-600 font-medium">Memuat data...</p>
         </div>
       </div>
+    )
+  }
+
+  // Show license activation screen if not licensed
+  if (showLicenseActivation) {
+    return (
+      <LicenseActivation
+        onSuccess={() => {
+          setShowLicenseActivation(false)
+        }}
+      />
     )
   }
 

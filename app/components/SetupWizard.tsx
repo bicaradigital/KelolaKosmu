@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Building2, Upload, X } from "lucide-react"
+import { setSetupCompleted } from "@/app/lib/setupStorage"
 import type { BoardingHouse } from "@/lib/storage"
 
 interface SetupWizardProps {
@@ -100,6 +101,9 @@ export default function SetupWizard({ isOpen, onComplete }: SetupWizardProps) {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
+
+    // Mark setup as completed
+    setSetupCompleted()
 
     onComplete(boardingHouse)
   }
