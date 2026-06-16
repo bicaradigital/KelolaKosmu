@@ -28,7 +28,7 @@ export const validateLicenseFormat = (licenseKey: string): boolean => {
  * Create a trial period license key
  * Used for initial setup without license
  */
-export const createTrialLicense = (): string {
+export const createTrialLicense = (): string => {
   const timestamp = Date.now().toString(36).toUpperCase()
   const random = Math.random().toString(36).substring(2, 12).toUpperCase()
   return `TRIAL-${timestamp}-${random}`
@@ -46,7 +46,7 @@ export const isTrialLicense = (licenseKey: string): boolean => {
  */
 export const validateDeviceFingerprint = (
   storedFingerprint: string,
-  currentFingerprint: string,
+  currentFingerprint: string
 ): LicenseValidationResult => {
   if (!storedFingerprint || !currentFingerprint) {
     return {
@@ -76,7 +76,7 @@ export const validateDeviceFingerprint = (
 export const validateLicense = (
   licenseKey: string,
   storedDeviceFingerprint: string | null,
-  currentDeviceFingerprint: string,
+  currentDeviceFingerprint: string
 ): LicenseValidationResult => {
   // Check format
   if (!validateLicenseFormat(licenseKey)) {
@@ -100,7 +100,7 @@ export const validateLicense = (
     // Validate device match
     const deviceCheck = validateDeviceFingerprint(
       storedDeviceFingerprint,
-      currentDeviceFingerprint,
+      currentDeviceFingerprint
     )
     if (!deviceCheck.isValid) {
       return deviceCheck
