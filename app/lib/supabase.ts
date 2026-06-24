@@ -1,14 +1,31 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://hcvzsiawtrogesjoiuog.supabase.co'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-if (!supabaseKey) {
-  console.warn('NEXT_PUBLIC_SUPABASE_ANON_KEY not set - using mock data only')
+// Log for debugging
+if (typeof window !== 'undefined') {
+  console.log('[Supabase] URL configured:', !!supabaseUrl)
+  console.log('[Supabase] Key configured:', !!supabaseKey)
 }
 
-// Create Supabase client
-export const supabase = supabaseKey ? createClient(supabaseUrl, supabaseKey) : null
+// Create Supabase client - only if both URL and Key are present
+export let supabase: ReturnType<typeof createClient> | null = null
+
+if (supabaseUrl && supabaseKey) {
+  try {
+    supabase = createClient(supabaseUrl, supabaseKey)
+    if (typeof window !== 'undefined') {
+      console.log('[Supabase] Client initialized successfully')
+    }
+  } catch (error) {
+    console.error('[Supabase] Failed to initialize client:', error)
+  }
+} else {
+  if (typeof window !== 'undefined') {
+    console.warn('[Supabase] Not configured - will use mock data')
+  }
+}
 
 // License table interface
 export interface License {
