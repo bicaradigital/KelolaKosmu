@@ -1,4 +1,14 @@
 import { supabase, License } from './supabase'
+import {
+  getMockLicenses,
+  createMockLicense,
+  getMockLicenseCount,
+  getActiveMockLicenseCount,
+  updateMockLicenseStatus,
+  searchMockLicenses,
+} from './mockLicenses'
+
+const USE_MOCK = !supabase
 
 // Generate license key in format: KK-[YEAR]-[4CHAR]-[4DIGITS]
 export function generateLicenseKey(): string {
@@ -23,11 +33,15 @@ export interface CreateLicenseInput {
 
 export async function createLicense(input: CreateLicenseInput): Promise<License | null> {
   try {
+    if (USE_MOCK) {
+      return await createMockLicense(input.buyer_name, input.notes)
+    }
+
     const licenseKey = generateLicenseKey()
     const now = new Date().toISOString()
     const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 year
 
-    const { data, error } = await supabase.from('licenses').insert({
+    const { data, error } = await supabase!.from('licenses').insert({
       key: licenseKey,
       buyer_name: input.buyer_name,
       status: 'active',
@@ -51,7 +65,11 @@ export async function createLicense(input: CreateLicenseInput): Promise<License 
 
 export async function getLicenses(limit = 50, offset = 0): Promise<License[]> {
   try {
-    const { data, error } = await supabase
+    if (USE_MOCK) {
+      return await getMockLicenses(limit, offset)
+    }
+
+    const { data, error } = await supabase!
       .from('licenses')
       .select('*')
       .order('created_at', { ascending: false })
@@ -74,7 +92,11 @@ export async function updateLicenseStatus(
   status: 'active' | 'inactive'
 ): Promise<boolean> {
   try {
-    const { error } = await supabase
+    if (USE_MOCK) {
+      return await updateMockLicenseStatus(licenseId, status)
+    }
+
+    const { error } = await supabase!
       .from('licenses')
       .update({ status })
       .eq('id', licenseId)
@@ -93,7 +115,11 @@ export async function updateLicenseStatus(
 
 export async function searchLicenses(query: string): Promise<License[]> {
   try {
-    const { data, error } = await supabase
+    if (USE_MOCK) {
+      return await searchMockLicenses(query)
+    }
+
+    const { data, error } = await supabase!
       .from('licenses')
       .select('*')
       .or(`key.ilike.%${query}%,buyer_name.ilike.%${query}%`)
@@ -113,7 +139,11 @@ export async function searchLicenses(query: string): Promise<License[]> {
 
 export async function getLicenseCount(): Promise<number> {
   try {
-    const { count, error } = await supabase
+    if (USE_MOCK) {
+      return await getMockLicenseCount()
+    }
+
+    const { count, error } = await supabase!
       .from('licenses')
       .select('*', { count: 'exact', head: true })
 
@@ -131,7 +161,11 @@ export async function getLicenseCount(): Promise<number> {
 
 export async function getActiveLicenseCount(): Promise<number> {
   try {
-    const { count, error } = await supabase
+    if (USE_MOCK) {
+      return await getActiveMockLicenseCount()
+    }
+
+    const { count, error } = await supabase!
       .from('licenses')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'active')
