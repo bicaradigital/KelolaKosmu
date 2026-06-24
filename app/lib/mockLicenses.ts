@@ -90,3 +90,13 @@ export async function searchMockLicenses(query: string): Promise<License[]> {
     (l) => l.key.toLowerCase().includes(q) || l.buyer_name.toLowerCase().includes(q),
   )
 }
+
+export async function getAllMockLicenses(): Promise<License[]> {
+  return mockLicenses
+}
+
+export async function getLicenseByKey(licenseKey: string): Promise<License | null> {
+  return (
+    mockLicenses.find((l) => l.key.toUpperCase() === licenseKey.toUpperCase()) || null
+  )
+}

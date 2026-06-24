@@ -13,6 +13,7 @@ import { AlertCircle, CheckCircle, Loader } from 'lucide-react'
 import { generateDeviceFingerprint } from '@/app/lib/deviceFingerprint'
 import { saveLicenseActivation } from '@/app/lib/licenseStorage'
 import { validateLicenseFormat, isTrialLicense } from '@/app/lib/licenseValidator'
+import { verifyLicenseKeyExists } from '@/app/lib/licenseVerification'
 
 interface LicenseActivationProps {
   onSuccess: () => void
@@ -38,19 +39,25 @@ export default function LicenseActivation({ onSuccess, onCancel }: LicenseActiva
 
     // Validate format
     if (!validateLicenseFormat(licenseKey)) {
-      setError('Format kode lisensi tidak valid')
+      setError('Format kode lisensi tidak valid. Gunakan format: KK-YYYY-AAAA-DDDD')
       return
     }
 
     setLoading(true)
 
     try {
+      // Verify license key exists in database (critical security check)
+      const licenseExists = await verifyLicenseKeyExists(licenseKey)
+      
+      if (!licenseExists) {
+        setError('Kode lisensi tidak valid atau belum terdaftar. Hubungi admin untuk mendapatkan lisensi resmi.')
+        setLoading(false)
+        return
+      }
+
       // Generate device fingerprint
       const deviceFingerprint = generateDeviceFingerprint()
 
-      // In production, you would validate the license key with your server
-      // For now, we'll accept valid format licenses
-      
       // Save activation
       saveLicenseActivation(licenseKey.toUpperCase(), deviceFingerprint)
 
@@ -167,17 +174,18 @@ export default function LicenseActivation({ onSuccess, onCancel }: LicenseActiva
             </Button>
           </div>
 
-          <div className="text-center border-t pt-4">
+          <div className="text-center border-t pt-4 space-y-2">
+            <p className="text-xs text-gray-700 font-semibold">
+              Belum memiliki lisensi?
+            </p>
             <p className="text-xs text-gray-600">
-              Belum memiliki lisensi?{' '}
-              <a
-                href="https://kelolakosmu.id"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-700 font-semibold"
-              >
-                Dapatkan sekarang
-              </a>
+              Hubungi admin untuk membeli lisensi KELOLA KOSMU. Anda akan menerima kode lisensi resmi dalam format:
+            </p>
+            <p className="text-xs font-mono font-semibold text-blue-700 bg-blue-50 p-2 rounded">
+              KK-YYYY-AAAA-DDDD
+            </p>
+            <p className="text-xs text-gray-500">
+              Contoh: KK-2024-ABCD-1234
             </p>
           </div>
         </CardContent>

@@ -11,16 +11,21 @@ export interface LicenseValidationResult {
 
 /**
  * Validate license key format
- * License key format: KELOLA-XXXX-XXXX-XXXX (example format)
+ * STRICT License key format: KK-YYYY-AAAA-DDDD
+ * Example: KK-2024-ABCD-1234
+ * KK = Kelola Kosmu prefix
+ * YYYY = Year (4 digits)
+ * AAAA = Random alphanumeric (4 chars)
+ * DDDD = Random digits (4 digits)
  */
 export const validateLicenseFormat = (licenseKey: string): boolean => {
   if (!licenseKey || typeof licenseKey !== 'string') {
     return false
   }
 
-  // Simple format validation - customize based on your license key format
-  // Currently accepts: KELOLA-XXXX-XXXX-XXXX or any key with length 20-50
-  const formatRegex = /^[A-Z0-9\-]{20,50}$/
+  // STRICT format validation - must be exactly KK-YYYY-AAAA-DDDD
+  // This prevents users from entering arbitrary strings
+  const formatRegex = /^KK-\d{4}-[A-Z0-9]{4}-\d{4}$/
   return formatRegex.test(licenseKey.toUpperCase())
 }
 
