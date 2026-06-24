@@ -41,10 +41,25 @@ export default function PaymentForm({
     paidDate: payment?.paidDate || "",
     status: payment?.status || ("pending" as const),
     notes: payment?.notes || "",
+    paymentPeriod: (payment?.paymentPeriod || "monthly") as "monthly" | "semester" | "yearly",
   })
 
   const selectedTenant = tenants.find((t) => t.id === formData.tenantId)
   const selectedRoom = rooms.find((r) => r.id === formData.roomId)
+
+  // Calculate multiplier based on payment period
+  const getPeriodMultiplier = (period: "monthly" | "semester" | "yearly") => {
+    switch (period) {
+      case "monthly":
+        return 1
+      case "semester":
+        return 6
+      case "yearly":
+        return 12
+      default:
+        return 1
+    }
+  }
 
   const handleTenantChange = (tenantId: string) => {
     const tenant = tenants.find((t) => t.id === tenantId)
@@ -54,7 +69,16 @@ export default function PaymentForm({
       ...formData,
       tenantId,
       roomId: room?.id || "",
-      amount: room?.rent || 0,
+      amount: (room?.rent || 0) * getPeriodMultiplier(formData.paymentPeriod),
+    })
+  }
+
+  const handlePeriodChange = (period: "monthly" | "semester" | "yearly") => {
+    const baseAmount = selectedRoom ? selectedRoom.rent : 0
+    setFormData({
+      ...formData,
+      paymentPeriod: period,
+      amount: baseAmount * getPeriodMultiplier(period),
     })
   }
 
@@ -167,6 +191,23 @@ export default function PaymentForm({
                 placeholder="Pilih penghuni terlebih dahulu"
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="paymentPeriod">Periode Pembayaran *</Label>
+            <Select
+              value={formData.paymentPeriod}
+              onValueChange={(value: "monthly" | "semester" | "yearly") => handlePeriodChange(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih periode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="monthly">Bulanan (1 bulan)</SelectItem>
+                <SelectItem value="semester">Semesteran (6 bulan)</SelectItem>
+                <SelectItem value="yearly">Tahunan (12 bulan)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

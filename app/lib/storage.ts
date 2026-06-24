@@ -53,6 +53,7 @@ export interface Payment {
   notes?: string
   reminderSent?: boolean
   reminderSentDate?: string
+  paymentPeriod: "monthly" | "semester" | "yearly"
   createdAt: string
 }
 
