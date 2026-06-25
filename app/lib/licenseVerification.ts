@@ -4,13 +4,17 @@
  * This prevents users from entering arbitrary license keys
  */
 
-import { supabase } from './supabase'
+import { createClient } from '@/app/utils/supabase/client'
 import {
   getLicenseByKey,
   getAllMockLicenses,
 } from './mockLicenses'
 
-const USE_MOCK = !supabase
+// Initialize Supabase client
+const supabase = createClient()
+// Check if Supabase is configured by checking for URL
+const hasSupabaseConfig = !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+const USE_MOCK = !hasSupabaseConfig
 
 /**
  * Verify that a license key exists in the system
@@ -20,10 +24,13 @@ const USE_MOCK = !supabase
 export async function verifyLicenseKeyExists(licenseKey: string): Promise<boolean> {
   try {
     console.log('[License Verification] Checking license key:', licenseKey)
+    console.log('[License Verification] hasSupabaseConfig:', hasSupabaseConfig)
     console.log('[License Verification] USE_MOCK:', USE_MOCK)
+    console.log('[License Verification] NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'NOT SET')
+    console.log('[License Verification] NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:', process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ? 'SET' : 'NOT SET')
     
     // First try Supabase if configured
-    if (supabase) {
+    if (hasSupabaseConfig && supabase) {
       try {
         const { data, error } = await supabase
           .from('licenses')
@@ -80,9 +87,10 @@ export async function verifyLicenseKeyExists(licenseKey: string): Promise<boolea
 export async function verifyLicenseKey(licenseKey: string) {
   try {
     console.log('[License Verification] Getting license details:', licenseKey)
+    console.log('[License Verification] hasSupabaseConfig:', hasSupabaseConfig)
 
     // First try Supabase if configured
-    if (supabase) {
+    if (hasSupabaseConfig && supabase) {
       try {
         const { data, error } = await supabase
           .from('licenses')
