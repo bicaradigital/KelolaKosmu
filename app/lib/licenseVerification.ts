@@ -4,17 +4,25 @@
  * This prevents users from entering arbitrary license keys
  */
 
-import { createClient } from '@/app/utils/supabase/client'
 import {
   getLicenseByKey,
   getAllMockLicenses,
 } from './mockLicenses'
 
-// Initialize Supabase client
-const supabase = createClient()
 // Check if Supabase is configured by checking for URL
 const hasSupabaseConfig = !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 const USE_MOCK = !hasSupabaseConfig
+
+// Initialize Supabase client only in browser
+let supabase: any = null
+if (typeof window !== 'undefined' && hasSupabaseConfig) {
+  try {
+    const { createClient } = require('@/app/utils/supabase/client')
+    supabase = createClient()
+  } catch (error) {
+    console.warn('Failed to initialize Supabase client:', error)
+  }
+}
 
 /**
  * Verify that a license key exists in the system
