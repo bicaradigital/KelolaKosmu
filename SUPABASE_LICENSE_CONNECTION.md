@@ -95,7 +95,7 @@ console.log(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
 
 Gunakan admin panel di repository lain untuk generate dan manage license keys:
 - URL: Admin Panel (internal)
-- Password: kelolakosmu50jutapengguna
+- Password: kelola_kosmi_admin
 - Akses di: http://localhost:3000/admin (development) atau domain admin panel (production)
 
 ## 6. Database Schema
