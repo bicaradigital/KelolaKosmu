@@ -47,13 +47,17 @@ export default function LicenseActivation({ onSuccess, onCancel }: LicenseActiva
 
     try {
       // Verify license key exists in database (critical security check)
+      console.log('[LicenseActivation] Verifying license key...')
       const licenseExists = await verifyLicenseKeyExists(licenseKey)
       
       if (!licenseExists) {
-        setError('Kode lisensi tidak valid atau belum terdaftar. Hubungi admin untuk mendapatkan lisensi resmi.')
+        console.error('[LicenseActivation] License verification failed:', licenseKey)
+        setError('Kode lisensi tidak valid atau belum terdaftar. Pastikan Anda memasukkan kode yang benar dari admin panel.')
         setLoading(false)
         return
       }
+      
+      console.log('[LicenseActivation] License verified successfully')
 
       // Generate device fingerprint
       const deviceFingerprint = generateDeviceFingerprint()
