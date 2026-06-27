@@ -1,4 +1,3 @@
-import { supabase, License } from './supabase'
 import {
   getMockLicenses,
   createMockLicense,
@@ -8,7 +7,31 @@ import {
   searchMockLicenses,
 } from './mockLicenses'
 
-const USE_MOCK = !supabase
+export interface License {
+  id: string
+  key: string
+  buyer_name: string
+  status: 'active' | 'inactive'
+  created_at: string
+  expires_at?: string
+  notes?: string
+  device_fingerprint?: string
+}
+
+// Check if Supabase is configured by checking for URL
+const hasSupabaseConfig = !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+const USE_MOCK = !hasSupabaseConfig
+
+// Initialize Supabase client only in browser
+let supabase: any = null
+if (typeof window !== 'undefined' && hasSupabaseConfig) {
+  try {
+    const { createClient } = require('@/app/utils/supabase/client')
+    supabase = createClient()
+  } catch (error) {
+    console.warn('Failed to initialize Supabase client:', error)
+  }
+}
 
 // Generate license key in format: KK-[YEAR]-[4CHAR]-[4DIGITS]
 export function generateLicenseKey(): string {

@@ -4,13 +4,25 @@
  * This prevents users from entering arbitrary license keys
  */
 
-import { supabase } from './supabase'
 import {
   getLicenseByKey,
   getAllMockLicenses,
 } from './mockLicenses'
 
-const USE_MOCK = !supabase
+// Check if Supabase is configured by checking for URL
+const hasSupabaseConfig = !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+const USE_MOCK = !hasSupabaseConfig
+
+// Initialize Supabase client only in browser
+let supabase: any = null
+if (typeof window !== 'undefined' && hasSupabaseConfig) {
+  try {
+    const { createClient } = require('@/app/utils/supabase/client')
+    supabase = createClient()
+  } catch (error) {
+    console.warn('Failed to initialize Supabase client:', error)
+  }
+}
 
 /**
  * Verify that a license key exists in the system
@@ -19,56 +31,78 @@ const USE_MOCK = !supabase
  */
 export async function verifyLicenseKeyExists(licenseKey: string): Promise<boolean> {
   try {
-    console.log('[License Verification] Checking license key:', licenseKey)
-    console.log('[License Verification] USE_MOCK:', USE_MOCK)
+    console.log('[v0] License Verification START - Input key:', licenseKey)
+    console.log('[v0] hasSupabaseConfig:', hasSupabaseConfig)
+    console.log('[v0] supabase instance exists:', !!supabase)
     
     // First try Supabase if configured
-    if (supabase) {
+    if (hasSupabaseConfig && supabase) {
       try {
+        console.log('[v0] Attempting Supabase query for key:', licenseKey.toUpperCase())
+        
+        // Query with all possible status/active columns
         const { data, error } = await supabase
           .from('licenses')
-          .select('id, status')
+          .select('*')
           .eq('key', licenseKey.toUpperCase())
           .maybeSingle()
 
-        if (!error && data) {
-          console.log('[License Verification] Found in Supabase:', data)
-          // Check if license is active
-          if (data.status === 'active') {
-            return true
-          } else {
-            console.warn('[License Verification] License found but inactive:', data.status)
-            return false
-          }
+        console.log('[v0] Supabase query returned - data:', data, 'error:', error)
+
+        if (error) {
+          console.error('[v0] Supabase error code:', error.code, 'message:', error.message)
         }
 
-        if (error && error.code !== 'PGRST116') {
-          // PGRST116 is "no rows returned" which is expected
-          console.error('[License Verification] Supabase query error:', error)
+        if (data) {
+          console.log('[v0] License found in Supabase - full data:', data)
+          
+          // Check if license is active using either status or is_active field
+          const isActive = data.status === 'active' || 
+                          data.is_active === true || 
+                          data.is_used === false
+          
+          console.log('[v0] License is_active check:', {
+            status_field: data.status,
+            is_active_field: data.is_active,
+            is_used_field: data.is_used,
+            final_result: isActive
+          })
+          
+          if (isActive) {
+            console.log('[v0] License VERIFIED - active in Supabase')
+            return true
+          } else {
+            console.warn('[v0] License found but NOT active - status:', data.status, 'is_active:', data.is_active)
+            return false
+          }
+        } else {
+          console.log('[v0] No data returned from Supabase (license not found)')
         }
       } catch (supabaseError) {
-        console.warn('[License Verification] Supabase check failed, falling back to mock:', supabaseError)
+        console.error('[v0] Supabase query exception:', supabaseError)
       }
+    } else {
+      console.warn('[v0] Supabase not configured or instance missing')
     }
 
     // Fallback to mock data
-    console.log('[License Verification] Checking mock data...')
+    console.log('[v0] Falling back to mock data...')
     const allLicenses = await getAllMockLicenses()
-    console.log('[License Verification] Mock licenses count:', allLicenses.length)
+    console.log('[v0] Mock licenses count:', allLicenses.length)
     
     const found = allLicenses.some(
       (lic) => lic.key.toUpperCase() === licenseKey.toUpperCase() && lic.status === 'active'
     )
     
     if (found) {
-      console.log('[License Verification] Found in mock data')
+      console.log('[v0] License VERIFIED - found in mock data')
       return true
     }
 
-    console.warn('[License Verification] License key not found in any data source')
+    console.warn('[v0] License key NOT FOUND in any data source')
     return false
   } catch (error) {
-    console.error('[License Verification] Unexpected error:', error)
+    console.error('[v0] Unexpected error in license verification:', error)
     return false
   }
 }
@@ -79,47 +113,57 @@ export async function verifyLicenseKeyExists(licenseKey: string): Promise<boolea
  */
 export async function verifyLicenseKey(licenseKey: string) {
   try {
-    console.log('[License Verification] Getting license details:', licenseKey)
+    console.log('[v0] Getting full license details for key:', licenseKey)
 
     // First try Supabase if configured
-    if (supabase) {
+    if (hasSupabaseConfig && supabase) {
       try {
+        console.log('[v0] Querying Supabase for full license data...')
         const { data, error } = await supabase
           .from('licenses')
           .select('*')
           .eq('key', licenseKey.toUpperCase())
           .maybeSingle()
 
-        if (!error && data) {
-          console.log('[License Verification] License details from Supabase:', data)
-          // Only return if active
-          if (data.status === 'active') {
+        console.log('[v0] Supabase query result - data:', data, 'error:', error)
+
+        if (data) {
+          console.log('[v0] Full license data from Supabase:', data)
+          
+          // Check if active using either status or is_active field
+          const isActive = data.status === 'active' || 
+                          data.is_active === true || 
+                          data.is_used === false
+          
+          if (isActive) {
+            console.log('[v0] Returning active license from Supabase')
             return data
           } else {
-            console.warn('[License Verification] License inactive')
+            console.warn('[v0] License found but not active - returning null')
             return null
           }
         }
 
-        if (error && error.code !== 'PGRST116') {
-          console.error('[License Verification] Supabase error:', error)
+        if (error) {
+          console.error('[v0] Supabase query error:', error)
         }
       } catch (supabaseError) {
-        console.warn('[License Verification] Supabase lookup failed, trying mock:', supabaseError)
+        console.error('[v0] Supabase lookup exception:', supabaseError)
       }
     }
 
     // Fallback to mock data
+    console.log('[v0] Falling back to mock data for license details...')
     const mockLicense = await getLicenseByKey(licenseKey)
     if (mockLicense && mockLicense.status === 'active') {
-      console.log('[License Verification] License details from mock')
+      console.log('[v0] Returning active license from mock data')
       return mockLicense
     }
 
-    console.warn('[License Verification] License not found or inactive')
+    console.warn('[v0] License not found or inactive - returning null')
     return null
   } catch (error) {
-    console.error('[License Verification] Unexpected error getting license:', error)
+    console.error('[v0] Unexpected error getting license details:', error)
     return null
   }
 }
