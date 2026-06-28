@@ -32,7 +32,6 @@ import {
   Eye,
 } from 'lucide-react'
 import { isAdminAuthenticated, clearAdminSession } from '@/app/lib/adminAuth'
-import { createLicense, getLicenses, searchLicenses, updateLicenseStatus, getLicenseCount, getActiveLicenseCount, License } from '@/app/lib/licenseGenerator'
 
 export default function AdminDashboard() {
   const router = useRouter()
