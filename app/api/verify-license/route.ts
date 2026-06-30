@@ -8,7 +8,7 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 const FALLBACK_LICENSES = [
   'KK-2026-QEQU-4726',
   'KK-2024-ABC1-1234',
-  'KK-2024-TEST-0001',
+  'KK-2026-PWNG-3259',
 ]
 
 async function verifyLicenseFromSupabase(licenseKey: string): Promise<boolean> {
