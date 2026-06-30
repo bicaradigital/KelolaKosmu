@@ -152,10 +152,6 @@ File-file ini tidak berubah (kompatibel):
 Valid license keys yang sudah ada di sistem:
 
 ```
-KK-2026-QEQU-4726    (Sudah ada dari input user)
-KK-2024-ABC1-1234    (Test key)
-KK-2024-TEST-0001    (Test key)
-```
 
 Format: `KK-YYYY-AAAA-DDDD`
 
