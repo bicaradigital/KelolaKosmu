@@ -30,7 +30,42 @@ export default function TenantForm({ tenant, availableRooms, onSubmit, onCancel 
       phone: tenant?.emergencyContact?.phone || "",
       relation: tenant?.emergencyContact?.relation || "",
     },
+    ktpFile: tenant?.ktpFile || null,
   })
+  
+  const [ktpPreview, setKtpPreview] = useState<string | null>(tenant?.ktpFile?.data || null)
+
+  const handleKtpUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Ukuran file tidak boleh lebih dari 5MB")
+      return
+    }
+
+    // Validate file type
+    if (!["image/jpeg", "image/png", "image/jpg", "application/pdf"].includes(file.type)) {
+      alert("Format file harus JPG, PNG, atau PDF")
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const base64Data = event.target?.result as string
+      setKtpPreview(base64Data)
+      setFormData({
+        ...formData,
+        ktpFile: {
+          name: file.name,
+          data: base64Data,
+          uploadedAt: new Date().toISOString(),
+        },
+      })
+    }
+    reader.readAsDataURL(file)
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -126,6 +161,40 @@ export default function TenantForm({ tenant, availableRooms, onSubmit, onCancel 
                 onChange={(e) => setFormData({ ...formData, checkInDate: e.target.value })}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="ktpFile">Upload KTP</Label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+              <input
+                id="ktpFile"
+                type="file"
+                accept="image/jpeg,image/png,image/jpg,application/pdf"
+                onChange={handleKtpUpload}
+                className="block w-full text-sm text-gray-500
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100"
+              />
+              <p className="text-xs text-gray-500 mt-2">JPG, PNG, atau PDF (Max 5MB)</p>
+            </div>
+            {ktpPreview && formData.ktpFile && (
+              <div className="mt-4">
+                <p className="text-sm font-medium mb-2">File: {formData.ktpFile.name}</p>
+                {formData.ktpFile.data.startsWith("data:image") && (
+                  <img 
+                    src={formData.ktpFile.data} 
+                    alt="KTP Preview" 
+                    className="max-w-xs max-h-64 border rounded-lg"
+                  />
+                )}
+                {formData.ktpFile.data.startsWith("data:application/pdf") && (
+                  <p className="text-sm text-gray-600">PDF uploaded successfully</p>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="space-y-4">
