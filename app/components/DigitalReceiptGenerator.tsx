@@ -26,6 +26,11 @@ interface DigitalReceiptGeneratorProps {
   tenant: Tenant
   room: Room
   settings: Settings
+  boardingHouse?: {
+    name: string
+    address: string
+    phone: string
+  }
   onReceiptGenerated: (receipt: Payment["digitalReceipt"]) => void
   onClose?: () => void
 }
@@ -35,6 +40,7 @@ export default function DigitalReceiptGenerator({
   tenant,
   room,
   settings,
+  boardingHouse,
   onReceiptGenerated,
   onClose,
 }: DigitalReceiptGeneratorProps) {
@@ -85,6 +91,11 @@ export default function DigitalReceiptGenerator({
       tenant,
       room,
       settings,
+      boardingHouse: boardingHouse || {
+        name: settings.kosName || "Boarding House",
+        address: settings.address || "",
+        phone: settings.phone || "",
+      },
       ownerSignature: ownerSignature || undefined,
       paymentMethod: formData.paymentMethod,
       note: formData.note,

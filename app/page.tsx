@@ -893,6 +893,11 @@ export default function KostManagement() {
                       tenant={tenants.find((t) => t.id === selectedPaymentForReceipt.tenantId) || ({} as any)}
                       room={rooms.find((r) => r.id === selectedPaymentForReceipt.roomId) || ({} as any)}
                       settings={settings}
+                      boardingHouse={boardingHouse ? {
+                        name: boardingHouse.name,
+                        address: boardingHouse.address,
+                        phone: boardingHouse.phone,
+                      } : undefined}
                       onReceiptGenerated={(receipt) => {
                         // Update payment with digital receipt
                         updatePayment(selectedPaymentForReceipt.id, {

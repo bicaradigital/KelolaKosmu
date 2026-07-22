@@ -5,6 +5,11 @@ export interface ReceiptGeneratorOptions {
   tenant: Tenant
   room: Room
   settings: Settings
+  boardingHouse?: {
+    name: string
+    address: string
+    phone: string
+  }
   ownerSignature?: string // Base64 encoded signature
   paymentMethod: string
   note?: string
@@ -14,10 +19,15 @@ export interface ReceiptGeneratorOptions {
  * Generate a digital receipt in HTML format that can be converted to PDF
  */
 export function generateReceiptHTML(options: ReceiptGeneratorOptions): string {
-  const { payment, tenant, room, settings, ownerSignature, paymentMethod, note } = options
+  const { payment, tenant, room, settings, boardingHouse, ownerSignature, paymentMethod, note } = options
 
   const receiptNumber = payment.digitalReceipt?.receiptNumber || `RCP-${Date.now()}`
   const receiptDate = payment.digitalReceipt?.receiptDate || new Date().toISOString()
+
+  // Use boarding house info or defaults
+  const kosName = boardingHouse?.name || "Boarding House"
+  const kosAddress = boardingHouse?.address || "Alamat tidak tersedia"
+  const kosPhone = boardingHouse?.phone || "Nomor tidak tersedia"
 
   const monthNames = [
     "Januari",
@@ -221,9 +231,9 @@ export function generateReceiptHTML(options: ReceiptGeneratorOptions): string {
           <div class="info-section">
             <h3>Informasi Pemilik/Pengelola</h3>
             <p>
-              <span class="label">Nama:</span> ${settings.kosName || "Boarding House"}<br>
-              <span class="label">Alamat:</span> ${settings.address || "-"}<br>
-              <span class="label">Telepon:</span> ${settings.phone || "-"}<br>
+              <span class="label">Nama:</span> ${kosName}<br>
+              <span class="label">Alamat:</span> ${kosAddress}<br>
+              <span class="label">Telepon:</span> ${kosPhone}<br>
               <span class="label">Email:</span> ${settings.email || "-"}
             </p>
           </div>
@@ -320,17 +330,20 @@ export function generateReceiptHTML(options: ReceiptGeneratorOptions): string {
             ${
               ownerSignature
                 ? `<img src="${ownerSignature}" alt="Tanda Tangan" class="signature-image">`
-                : ""
+                : "<div style='height: 80px;'></div>"
             }
             <div>
-              <span class="label">${settings.kosName || "Boarding House"}</span>
+              <span class="label">${kosName}</span>
             </div>
           </div>
         </div>
         
         <div class="footer">
           <p>Kwitansi ini berlaku sebagai bukti pembayaran sewa kamar.</p>
-          <p>Dihasilkan oleh Kelola Kosmu | ${new Date().toLocaleDateString("id-ID")}</p>
+          <p style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 11px; color: #999;">
+            <strong>Powered by Bicara Digital</strong><br>
+            Sistem Manajemen Kos Terpercaya | ${new Date().toLocaleDateString("id-ID")}
+          </p>
         </div>
       </div>
     </body>
