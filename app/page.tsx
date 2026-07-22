@@ -41,6 +41,8 @@ import SecuritySettings from "./components/SecuritySettings"
 import NavigationTabs from "./components/NavigationTabs"
 import SetupWizard from "./components/SetupWizard"
 import BoardingHouseSettings from "./components/BoardingHouseSettings"
+import DigitalReceiptGenerator from "./components/DigitalReceiptGenerator"
+import ReceiptViewer from "./components/ReceiptViewer"
 
 export default function KostManagement() {
   const {
@@ -90,6 +92,8 @@ export default function KostManagement() {
   const [editingFinancial, setEditingFinancial] = useState(null)
   const [showSetupWizard, setShowSetupWizard] = useState(!boardingHouse)
   const [showLicenseActivation, setShowLicenseActivation] = useState(!licenseActivated)
+  const [showReceiptGenerator, setShowReceiptGenerator] = useState(false)
+  const [selectedPaymentForReceipt, setSelectedPaymentForReceipt] = useState(null)
 
   // Check setup completion on mount
   useEffect(() => {
@@ -818,6 +822,20 @@ export default function KostManagement() {
                               {getPaymentStatusBadge(payment.status)}
                             </div>
                             <div className="flex gap-2">
+                              {payment.status === "paid" && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedPaymentForReceipt(payment)
+                                    setShowReceiptGenerator(true)
+                                  }}
+                                  className="border-green-200 text-green-700 hover:bg-green-50"
+                                  title="Generate kwitansi digital untuk dibagikan ke penyewa"
+                                >
+                                  <span className="text-xs">Kwitansi</span>
+                                </Button>
+                              )}
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -865,6 +883,38 @@ export default function KostManagement() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Digital Receipt Generator Modal */}
+              <Dialog open={showReceiptGenerator} onOpenChange={setShowReceiptGenerator}>
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                  {selectedPaymentForReceipt && (
+                    <DigitalReceiptGenerator
+                      payment={selectedPaymentForReceipt}
+                      tenant={tenants.find((t) => t.id === selectedPaymentForReceipt.tenantId) || ({} as any)}
+                      room={rooms.find((r) => r.id === selectedPaymentForReceipt.roomId) || ({} as any)}
+                      settings={settings}
+                      boardingHouse={boardingHouse ? {
+                        name: boardingHouse.name,
+                        address: boardingHouse.address,
+                        phone: boardingHouse.phone,
+                      } : undefined}
+                      onReceiptGenerated={(receipt) => {
+                        // Update payment with digital receipt
+                        updatePayment(selectedPaymentForReceipt.id, {
+                          ...selectedPaymentForReceipt,
+                          digitalReceipt: receipt,
+                        })
+                        setShowReceiptGenerator(false)
+                        setSelectedPaymentForReceipt(null)
+                      }}
+                      onClose={() => {
+                        setShowReceiptGenerator(false)
+                        setSelectedPaymentForReceipt(null)
+                      }}
+                    />
+                  )}
+                </DialogContent>
+              </Dialog>
             </TabsContent>
 
             {/* Financial Tab */}
