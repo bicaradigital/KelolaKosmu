@@ -37,6 +37,11 @@ export interface Tenant {
     phone: string
     relation: string
   }
+  ktpFile?: {
+    name: string
+    data: string // Base64 encoded
+    uploadedAt: string
+  }
   createdAt: string
 }
 
@@ -54,6 +59,12 @@ export interface Payment {
   reminderSent?: boolean
   reminderSentDate?: string
   paymentPeriod: "monthly" | "semester" | "yearly"
+  receipt?: {
+    receiptNumber: string
+    receiptDate: string
+    receiptData: string // Base64 encoded PDF/image
+    receiptFormat: "pdf" | "image"
+  }
   createdAt: string
 }
 
@@ -81,6 +92,23 @@ export interface FinancialCategory {
   icon: string
   subcategories: string[]
   isDefault: boolean
+}
+
+export interface Notification {
+  id: string
+  type: "payment_due" | "payment_overdue" | "payment_received" | "payment_reminder"
+  title: string
+  message: string
+  paymentId?: string
+  tenantId?: string
+  read: boolean
+  readAt?: string
+  action?: {
+    label: string
+    actionType: "view_payment" | "view_tenant" | "generate_receipt"
+    targetId: string
+  }
+  createdAt: string
 }
 
 export interface Settings {

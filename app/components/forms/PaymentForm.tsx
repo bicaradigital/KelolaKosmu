@@ -42,7 +42,10 @@ export default function PaymentForm({
     status: payment?.status || ("pending" as const),
     notes: payment?.notes || "",
     paymentPeriod: (payment?.paymentPeriod || "monthly") as "monthly" | "semester" | "yearly",
+    receipt: payment?.receipt || null,
   })
+  
+  const [receiptPreview, setReceiptPreview] = useState<string | null>(payment?.receipt?.receiptData || null)
 
   const selectedTenant = tenants.find((t) => t.id === formData.tenantId)
   const selectedRoom = rooms.find((r) => r.id === formData.roomId)
@@ -80,6 +83,40 @@ export default function PaymentForm({
       paymentPeriod: period,
       amount: baseAmount * getPeriodMultiplier(period),
     })
+  }
+
+  const handleReceiptUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Ukuran file tidak boleh lebih dari 5MB")
+      return
+    }
+
+    // Validate file type
+    if (!["image/jpeg", "image/png", "image/jpg", "application/pdf"].includes(file.type)) {
+      alert("Format file harus JPG, PNG, atau PDF")
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const base64Data = event.target?.result as string
+      setReceiptPreview(base64Data)
+      const receiptNumber = `RCP-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9999)).padStart(4, "0")}`
+      setFormData({
+        ...formData,
+        receipt: {
+          receiptNumber,
+          receiptDate: new Date().toISOString(),
+          receiptData: base64Data,
+          receiptFormat: file.type === "application/pdf" ? "pdf" : "image",
+        },
+      })
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -296,6 +333,38 @@ export default function PaymentForm({
               />
             </div>
           )}
+
+          <div className="space-y-2">
+            <Label htmlFor="receipt">Upload Kwitansi Elektronik (Bukti Pembayaran)</Label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+              <input
+                id="receipt"
+                type="file"
+                accept="image/jpeg,image/png,image/jpg,application/pdf"
+                onChange={handleReceiptUpload}
+                className="block w-full text-sm text-gray-500
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100"
+              />
+              <p className="text-xs text-gray-500 mt-2">JPG, PNG, atau PDF (Max 5MB)</p>
+            </div>
+            {formData.receipt && (
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm font-medium text-gray-700">Nomor Kwitansi: <span className="text-blue-600">{formData.receipt.receiptNumber}</span></p>
+                <p className="text-xs text-gray-600 mt-1">File: {formData.receipt.receiptFormat.toUpperCase()}</p>
+                {receiptPreview && formData.receipt.receiptFormat === "image" && (
+                  <img 
+                    src={receiptPreview} 
+                    alt="Receipt Preview" 
+                    className="max-w-xs max-h-64 border rounded-lg mt-3"
+                  />
+                )}
+              </div>
+            )}
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="notes">Catatan</Label>
