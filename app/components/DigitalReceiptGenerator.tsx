@@ -14,7 +14,11 @@ import {
   generateReceiptHTML,
   generateReceiptNumber,
   downloadReceiptAsHTML,
+  downloadReceiptAsPDF,
   printReceipt,
+  shareViaWhatsApp,
+  copyWhatsAppMessageToClipboard,
+  generateWhatsAppMessage,
 } from "@/app/lib/digitalReceiptGenerator"
 
 interface DigitalReceiptGeneratorProps {
@@ -42,6 +46,7 @@ export default function DigitalReceiptGenerator({
   const [ownerSignature, setOwnerSignature] = useState<string | null>(null)
   const [receiptHTML, setReceiptHTML] = useState<string>("")
   const [receiptNumber] = useState(generateReceiptNumber())
+  const [copyMessage, setCopyMessage] = useState("")
 
   const handlePaymentMethodChange = (value: string) => {
     setFormData({
@@ -111,9 +116,50 @@ export default function DigitalReceiptGenerator({
     }
   }
 
+  const handleDownloadPDF = () => {
+    if (receiptHTML) {
+      downloadReceiptAsPDF(receiptHTML, receiptNumber)
+    }
+  }
+
   const handlePrint = () => {
     if (receiptHTML) {
       printReceipt(receiptHTML)
+    }
+  }
+
+  const handleShareWhatsApp = () => {
+    if (tenant.phone) {
+      const paymentMonth = new Date(payment.month ? `${payment.month}/2000` : Date.now())
+        .toLocaleDateString("id-ID", { month: "long", year: "numeric" })
+      shareViaWhatsApp(
+        tenant.phone,
+        receiptNumber,
+        tenant.name,
+        payment.amount,
+        room.number,
+        paymentMonth,
+      )
+    }
+  }
+
+  const handleCopyWhatsAppMessage = async () => {
+    try {
+      const paymentMonth = new Date(payment.month ? `${payment.month}/2000` : Date.now())
+        .toLocaleDateString("id-ID", { month: "long", year: "numeric" })
+      await copyWhatsAppMessageToClipboard(
+        receiptNumber,
+        tenant.name,
+        payment.amount,
+        room.number,
+        paymentMonth,
+      )
+      setCopyMessage("Pesan WhatsApp berhasil disalin!")
+      setTimeout(() => setCopyMessage(""), 3000)
+    } catch (error) {
+      console.error("[v0] Error copying to clipboard:", error)
+      setCopyMessage("Gagal menyalin pesan")
+      setTimeout(() => setCopyMessage(""), 3000)
     }
   }
 
@@ -261,22 +307,57 @@ export default function DigitalReceiptGenerator({
                 />
               </div>
 
-              <div className="flex gap-3 justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => setStep("signature")}
-                >
-                  Kembali
-                </Button>
-                <Button variant="outline" onClick={handleDownload}>
-                  📥 Download HTML
-                </Button>
-                <Button variant="outline" onClick={handlePrint}>
-                  🖨️ Cetak
-                </Button>
-                <Button onClick={handleGenerateFinal} className="bg-green-600 hover:bg-green-700">
-                  ✓ Simpan Kwitansi
-                </Button>
+              <div className="space-y-4">
+                {/* WhatsApp Share Options */}
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <p className="text-sm font-medium text-green-800 mb-3">
+                    Bagikan ke WhatsApp Penyewa:
+                  </p>
+                  <div className="flex gap-2 flex-wrap">
+                    <Button
+                      variant="outline"
+                      onClick={handleShareWhatsApp}
+                      className="border-green-500 text-green-700 hover:bg-green-50"
+                    >
+                      💬 Buka WhatsApp
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handleCopyWhatsAppMessage}
+                      className="border-green-500 text-green-700 hover:bg-green-50"
+                    >
+                      📋 Salin Pesan
+                    </Button>
+                    {copyMessage && (
+                      <span className="text-sm text-green-700 py-2">{copyMessage}</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-green-700 mt-2">
+                    Nomor penyewa: {tenant.phone}
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => setStep("signature")}
+                  >
+                    Kembali
+                  </Button>
+                  <Button variant="outline" onClick={handleDownload}>
+                    📥 HTML
+                  </Button>
+                  <Button variant="outline" onClick={handleDownloadPDF}>
+                    📄 PDF
+                  </Button>
+                  <Button variant="outline" onClick={handlePrint}>
+                    🖨️ Cetak
+                  </Button>
+                  <Button onClick={handleGenerateFinal} className="bg-green-600 hover:bg-green-700">
+                    ✓ Simpan Kwitansi
+                  </Button>
+                </div>
               </div>
             </TabsContent>
           </Tabs>

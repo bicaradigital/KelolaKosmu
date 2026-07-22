@@ -443,3 +443,98 @@ export function printReceipt(html: string): void {
     }, 100)
   }
 }
+
+/**
+ * Download receipt as PDF using browser's print to PDF feature
+ */
+export function downloadReceiptAsPDF(html: string, receiptNumber: string): void {
+  const printWindow = window.open("", "", "width=800,height=600")
+  if (printWindow) {
+    printWindow.document.write(html)
+    printWindow.document.close()
+    printWindow.focus()
+    setTimeout(() => {
+      // Open print dialog with focus on "Save as PDF" option
+      printWindow.print()
+      // Alternative: For automatic PDF generation, use server-side solution
+      // You can integrate jsPDF here for automatic PDF generation
+    }, 100)
+  }
+}
+
+/**
+ * Generate WhatsApp message with receipt details
+ */
+export function generateWhatsAppMessage(
+  receiptNumber: string,
+  tenantName: string,
+  amount: number,
+  roomNumber: string,
+  paymentMonth: string,
+): string {
+  const formattedAmount = amount.toLocaleString("id-ID")
+  const message = `Halo ${tenantName},\n\nBerikut adalah detail kwitansi pembayaran sewa kamar kamu:\n\n📄 *Kwitansi Elektronik*\nNomor: ${receiptNumber}\nKamar: ${roomNumber}\nPeriode: ${paymentMonth}\nJumlah: Rp ${formattedAmount}\n\nKwitansi ini berlaku sebagai bukti pembayaran.\n\nTerima kasih! 🙏`
+  return message
+}
+
+/**
+ * Send receipt via WhatsApp
+ */
+export function shareViaWhatsApp(
+  phoneNumber: string,
+  receiptNumber: string,
+  tenantName: string,
+  amount: number,
+  roomNumber: string,
+  paymentMonth: string,
+): void {
+  // Clean phone number (remove special characters, ensure starts with country code or just digits)
+  let cleanPhone = phoneNumber.replace(/\D/g, "")
+  
+  // If doesn't start with country code, assume Indonesia (62)
+  if (!cleanPhone.startsWith("62") && cleanPhone.startsWith("0")) {
+    cleanPhone = "62" + cleanPhone.substring(1)
+  } else if (!cleanPhone.startsWith("62")) {
+    cleanPhone = "62" + cleanPhone
+  }
+
+  const message = generateWhatsAppMessage(
+    receiptNumber,
+    tenantName,
+    amount,
+    roomNumber,
+    paymentMonth,
+  )
+
+  // Encode message for URL
+  const encodedMessage = encodeURIComponent(message)
+
+  // Open WhatsApp with pre-filled message
+  // Format: https://wa.me/{phone}?text={message}
+  const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`
+  window.open(whatsappUrl, "_blank")
+}
+
+/**
+ * Copy WhatsApp message to clipboard
+ */
+export function copyWhatsAppMessageToClipboard(
+  receiptNumber: string,
+  tenantName: string,
+  amount: number,
+  roomNumber: string,
+  paymentMonth: string,
+): Promise<void> {
+  const message = generateWhatsAppMessage(
+    receiptNumber,
+    tenantName,
+    amount,
+    roomNumber,
+    paymentMonth,
+  )
+
+  // Copy to clipboard
+  return navigator.clipboard.writeText(message).then(() => {
+    console.log("[v0] WhatsApp message copied to clipboard")
+  })
+}
