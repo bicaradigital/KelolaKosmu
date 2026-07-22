@@ -65,6 +65,15 @@ export interface Payment {
     receiptData: string // Base64 encoded PDF/image
     receiptFormat: "pdf" | "image"
   }
+  digitalReceipt?: {
+    receiptNumber: string
+    receiptDate: string
+    generatedAt: string
+    ownerSignature?: string // Base64 encoded signature
+    paymentMethod: string
+    note?: string
+    receiptPDF: string // Base64 encoded PDF
+  }
   createdAt: string
 }
 
