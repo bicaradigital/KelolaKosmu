@@ -9,6 +9,7 @@ const FALLBACK_LICENSES = [
     'KK-2026-PWNG-3259',
     'KK-2026-YMVB-5784',
     'KK-2026-XMKV-2143',
+    'KK-2026-VNWW-2008'
 ]
 
 async function verifyLicenseFromSupabase(licenseKey: string): Promise<boolean> {
